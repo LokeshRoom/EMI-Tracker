@@ -10,7 +10,6 @@ export const metadata: Metadata = {
   description: "Track cards, cardholders, and EMI purchases.",
 };
 
-export const instant = false;
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return <RequireAuth>{children}</RequireAuth>;

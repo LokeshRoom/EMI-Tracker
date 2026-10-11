@@ -1,0 +1,155 @@
+mutation CreateUser @auth(level: USER) {
+  user_insert(data: {
+    id_expr: "auth.uid",
+    email: "user@example.com",
+    name: "New User"
+  })
+}
+
+mutation UpdateUser @auth(level: USER) {
+  user_update(key: {id_expr: "auth.uid"}, data: {name: "Updated Name"})
+}
+
+mutation DeleteUser @auth(level: USER) {
+  user_delete(key: {id_expr: "auth.uid"})
+}
+
+query GetUser @auth(level: USER) {
+  user(key: {id_expr: "auth.uid"}) {
+    email
+    name
+  }
+}
+
+query ListUsers @auth(level: PUBLIC, insecureReason: "Publicly accessible user list") {
+  users {
+    name
+  }
+}
+
+mutation CreateCreditCard($nickname: String!, $issuerName: String!, $lastFourDigits: String!) @auth(level: USER) {
+  creditCard_insert(data: {
+    nickname: $nickname,
+    issuerName: $issuerName,
+    lastFourDigits: $lastFourDigits,
+    userId_expr: "auth.uid"
+  })
+}
+
+mutation UpdateCreditCard($id: UUID!, $nickname: String!) @auth(level: USER) {
+  creditCard_update(key: {id: $id}, data: {nickname: $nickname})
+}
+
+mutation DeleteCreditCard($id: UUID!) @auth(level: USER) {
+  creditCard_delete(key: {id: $id})
+}
+
+query GetCreditCard($id: UUID!) @auth(level: USER) {
+  creditCard(key: {id: $id}) {
+    nickname
+    issuerName
+  }
+}
+
+query ListCreditCards @auth(level: USER) {
+  creditCards(where: {userId: {eq_expr: "auth.uid"}}) {
+    nickname
+    lastFourDigits
+  }
+}
+
+mutation CreateEMI($purchaseName: String!, $totalAmount: Float!, $monthlyAmount: Float!, $interestRate: Float!, $totalInstallments: Int!, $startDate: Date!, $nextDueDate: Date!, $creditCardId: UUID!) @auth(level: USER) {
+  eMI_insert(data: {
+    purchaseName: $purchaseName,
+    totalAmount: $totalAmount,
+    monthlyAmount: $monthlyAmount,
+    interestRate: $interestRate,
+    totalInstallments: $totalInstallments,
+    startDate: $startDate,
+    nextDueDate: $nextDueDate,
+    creditCardId: $creditCardId
+  })
+}
+
+mutation UpdateEMI($id: UUID!, $status: String!) @auth(level: USER) {
+  eMI_update(key: {id: $id}, data: {status: $status})
+}
+
+mutation DeleteEMI($id: UUID!) @auth(level: USER) {
+  eMI_delete(key: {id: $id})
+}
+
+query GetEMI($id: UUID!) @auth(level: USER) {
+  eMI(key: {id: $id}) {
+    purchaseName
+    totalAmount
+  }
+}
+
+query ListEMIs @auth(level: USER) {
+  eMIS(where: {creditCard: {userId: {eq_expr: "auth.uid"}}}) {
+    purchaseName
+    nextDueDate
+  }
+}
+
+mutation CreatePayment($paymentDate: Date!, $amountPaid: Float!, $status: String!, $emiId: UUID!) @auth(level: USER) {
+  payment_insert(data: {
+    paymentDate: $paymentDate,
+    amountPaid: $amountPaid,
+    status: $status,
+    emiId: $emiId
+  })
+}
+
+mutation UpdatePayment($id: UUID!, $status: String!) @auth(level: USER) {
+  payment_update(key: {id: $id}, data: {status: $status})
+}
+
+mutation DeletePayment($id: UUID!) @auth(level: USER) {
+  payment_delete(key: {id: $id})
+}
+
+query GetPayment($id: UUID!) @auth(level: USER) {
+  payment(key: {id: $id}) {
+    amountPaid
+    paymentDate
+  }
+}
+
+query ListPayments @auth(level: USER) {
+  payments(where: {emi: {creditCard: {userId: {eq_expr: "auth.uid"}}}}) {
+    amountPaid
+    status
+  }
+}
+
+mutation CreateReminder($leadDays: Int!, $isEnabled: Boolean!) @auth(level: USER) {
+  reminder_insert(data: {
+    leadDays: $leadDays,
+    isEnabled: $isEnabled,
+    userId_expr: "auth.uid"
+  })
+}
+
+mutation UpdateReminder($id: UUID!, $isEnabled: Boolean!) @auth(level: USER) {
+  reminder_update(key: {id: $id}, data: {isEnabled: $isEnabled})
+}
+
+mutation DeleteReminder($id: UUID!) @auth(level: USER) {
+  reminder_delete(key: {id: $id})
+}
+
+query GetReminder($id: UUID!) @auth(level: USER) {
+  reminder(key: {id: $id}) {
+    leadDays
+    isEnabled
+  }
+}
+
+query ListReminders @auth(level: USER) {
+  reminders(where: {userId: {eq_expr: "auth.uid"}}) {
+    leadDays
+    isEnabled
+  }
+}

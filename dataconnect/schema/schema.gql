@@ -1,0 +1,38 @@
+type User @table {
+  email: String!
+  name: String!
+  currencyPreference: String
+}
+
+type CreditCard @table {
+  nickname: String!
+  issuerName: String!
+  lastFourDigits: String!
+  user: User!
+}
+
+type EMI @table {
+  purchaseName: String!
+  totalAmount: Float!
+  monthlyAmount: Float!
+  interestRate: Float!
+  totalInstallments: Int!
+  startDate: Date!
+  nextDueDate: Date!
+  status: String
+  notes: String
+  creditCard: CreditCard!
+}
+
+type Payment @table {
+  paymentDate: Date!
+  amountPaid: Float!
+  status: String!
+  emi: EMI!
+}
+
+type Reminder @table {
+  leadDays: Int!
+  isEnabled: Boolean!
+  user: User!
+}

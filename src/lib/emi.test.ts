@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calculateEmi } from "./emi";
-import { currentStartMonth, isValidStartMonth, parseCents } from "./money";
+import { currentStartMonth, isValidStartMonth, monthLabelFromStartMonth, parseCents } from "./money";
 import type { EmiCalculationInput } from "./emi";
 
 const baseInput: EmiCalculationInput = {
@@ -39,6 +39,11 @@ describe("start month helpers", () => {
 
   it("returns a valid current start month", () => {
     expect(isValidStartMonth(currentStartMonth())).toBe(true);
+  });
+
+  it("formats month label with accurate calendar year and offset", () => {
+    expect(monthLabelFromStartMonth("2026-11", 0)).toBe("Nov 2026");
+    expect(monthLabelFromStartMonth("2026-11", 2)).toBe("Jan 2027");
   });
 });
 
@@ -120,5 +125,42 @@ describe("calculateEmi", () => {
         result.gstOnProcessingChargeCents +
         result.gstOnAdditionalCostCents
     );
+  });
+
+  it("handles running EMIs with paid installments count", () => {
+    const result = calculateEmi({
+      ...baseInput,
+      principalCents: 120000,
+      tenureMonths: 12,
+      paidInstallmentsCount: 4,
+    });
+
+    expect(result.paidInstallmentsCount).toBe(4);
+    expect(result.remainingInstallmentsCount).toBe(8);
+    expect(result.schedule[0].isPaid).toBe(true);
+    expect(result.schedule[3].isPaid).toBe(true);
+    expect(result.schedule[4].isPaid).toBe(false);
+    expect(result.remainingPrincipalBalanceCents).toBe(80000);
+    expect(result.remainingOutlayCents).toBe(80000);
+  });
+
+  it("calculates proportional splits across cardholders", () => {
+    const result = calculateEmi({
+      ...baseInput,
+      principalCents: 120000,
+      tenureMonths: 12,
+      splits: [
+        { cardholderId: "user-1", percentage: 60 },
+        { cardholderId: "user-2", percentage: 40 },
+      ],
+    });
+
+    expect(result.splits).toHaveLength(2);
+    expect(result.splits[0].percentage).toBe(60);
+    expect(result.splits[0].monthlyEmiCents).toBe(6000);
+    expect(result.splits[0].totalOutlayCents).toBe(72000);
+    expect(result.splits[1].percentage).toBe(40);
+    expect(result.splits[1].monthlyEmiCents).toBe(4000);
+    expect(result.splits[1].totalOutlayCents).toBe(48000);
   });
 });

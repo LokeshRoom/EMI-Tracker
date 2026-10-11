@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { getErrorMessage, getFirebase } from "@/lib/firebase";
-import { Button, Spinner } from "./ui";
+import { SecondaryButton, Spinner } from "./ui";
+import { NotificationBell } from "./notifications";
 
 function SignOutButton() {
   const [pending, setPending] = useState(false);
@@ -29,14 +30,13 @@ function SignOutButton() {
   return (
     <div className="flex items-center gap-2">
       {error ? <span className="text-xs text-red-600">{error}</span> : null}
-      <Button
+      <SecondaryButton
         type="button"
         onClick={handleSignOut}
         disabled={pending}
-        className="bg-white text-zinc-900 hover:bg-zinc-100"
       >
         {pending ? "Signing out..." : "Sign out"}
-      </Button>
+      </SecondaryButton>
     </div>
   );
 }
@@ -71,6 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           {auth.status === "authenticated" ? (
             <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-500">
+              <NotificationBell />
               <span className="max-w-40 truncate">{displayName}</span>
               <SignOutButton />
             </div>

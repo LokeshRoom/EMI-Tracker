@@ -5,10 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import { EmiSummary } from "@/components/emi-summary";
 import {
   Badge,
-  Button,
   DangerButton,
   ErrorNotice,
   PageHeader,
+  SecondaryButton,
   Spinner,
 } from "@/components/ui";
 import { useCard } from "@/hooks/useCards";
