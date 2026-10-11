@@ -89,7 +89,7 @@ export default function EmiDetail() {
           Tenure: {currentEmi.tenureMonths} months · Starting {currentEmi.startMonth}
         </span>
       </div>
-      <EmiSummary emi={currentEmi} currency={currentCard.currency} />
+      <EmiSummary emi={currentEmi} currency={currentCard.currency} cardholders={cardholders.data ?? []} />
     </div>
   );
 }
