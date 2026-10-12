@@ -71,8 +71,8 @@ export default function CardDetail() {
       paidInstallmentsCount: emi.paidInstallmentsCount,
       splits: emi.splits,
     });
-    cardMonthlyTotalCents += calc.emiCents;
-    const splits = getEmiCardholderSplits(emi, calc.emiCents);
+    cardMonthlyTotalCents += calc.monthlyPaymentWithGstCents;
+    const splits = getEmiCardholderSplits(emi, calc.monthlyPaymentWithGstCents, calc.totalUpfrontFeeCents);
     splits.forEach((s) => {
       const prev = cardholderCardTotals.get(s.cardholderId) ?? 0;
       cardholderCardTotals.set(s.cardholderId, prev + s.monthlyEmiCents);
@@ -225,9 +225,16 @@ export default function CardDetail() {
                           </p>
                         </div>
                         <div className="flex flex-wrap items-center gap-3 text-sm">
-                          <span className="font-bold text-zinc-900 tabular-nums">
-                            {formatCents(calculation.emiCents, currentCard.currency)} / month
-                          </span>
+                          <div className="text-right">
+                            <span className="font-bold text-zinc-900 tabular-nums">
+                              {formatCents(calculation.monthlyPaymentWithGstCents, currentCard.currency)} / month
+                            </span>
+                            {calculation.totalUpfrontFeeCents > 0 ? (
+                              <p className="text-[11px] font-semibold text-amber-700 tabular-nums">
+                                1st mo: {formatCents(calculation.firstMonthPaymentCents, currentCard.currency)}
+                              </p>
+                            ) : null}
+                          </div>
                           <Badge>{emi.status}</Badge>
                         </div>
                       </div>
@@ -237,7 +244,7 @@ export default function CardDetail() {
                         <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mr-1">
                           Split:
                         </span>
-                        {getEmiCardholderSplits(emi, calculation.emiCents).map((split) => {
+                        {getEmiCardholderSplits(emi, calculation.monthlyPaymentWithGstCents, calculation.totalUpfrontFeeCents).map((split) => {
                           const chName = cardholders.data?.find((c) => c.id === split.cardholderId)?.name ?? "Cardholder";
                           return (
                             <span
@@ -245,7 +252,14 @@ export default function CardDetail() {
                               className="inline-flex items-center gap-1 rounded-md bg-indigo-50/90 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 border border-indigo-100 tabular-nums"
                             >
                               <span className="text-zinc-600 font-medium">{chName}:</span>
-                              <span>{formatCents(split.monthlyEmiCents, currentCard.currency)}</span>
+                              {split.upfrontFeeCents > 0 ? (
+                                <>
+                                  <span className="text-indigo-900 font-bold">1st mo: {formatCents(split.firstMonthPaymentCents, currentCard.currency)}</span>
+                                  <span className="text-zinc-500 font-normal">({formatCents(split.monthlyEmiCents, currentCard.currency)}/mo)</span>
+                                </>
+                              ) : (
+                                <span>{formatCents(split.monthlyEmiCents, currentCard.currency)}/mo</span>
+                              )}
                               <span className="text-indigo-500 font-normal">({split.percentage}%)</span>
                             </span>
                           );

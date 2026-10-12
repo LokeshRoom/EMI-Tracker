@@ -144,10 +144,11 @@ describe("calculateEmi", () => {
     expect(result.remainingOutlayCents).toBe(80000);
   });
 
-  it("calculates proportional splits across cardholders", () => {
+  it("calculates proportional splits across cardholders including upfront fee", () => {
     const result = calculateEmi({
       ...baseInput,
       principalCents: 120000,
+      processingChargeCents: 10000,
       tenureMonths: 12,
       splits: [
         { cardholderId: "user-1", percentage: 60 },
@@ -158,10 +159,42 @@ describe("calculateEmi", () => {
     expect(result.splits).toHaveLength(2);
     expect(result.splits[0].percentage).toBe(60);
     expect(result.splits[0].monthlyEmiCents).toBe(6000);
-    expect(result.splits[0].totalOutlayCents).toBe(72000);
+    expect(result.splits[0].upfrontFeeCents).toBe(7080); // 60% of (10000 + 1800)
+    expect(result.splits[0].firstMonthPaymentCents).toBe(13080); // 6000 + 7080
     expect(result.splits[1].percentage).toBe(40);
     expect(result.splits[1].monthlyEmiCents).toBe(4000);
-    expect(result.splits[1].totalOutlayCents).toBe(48000);
+    expect(result.splits[1].upfrontFeeCents).toBe(4720); // 40% of (10000 + 1800)
+    expect(result.splits[1].firstMonthPaymentCents).toBe(8720); // 4000 + 4720
+  });
+
+  it("calculates 18% GST on interest and upfront fee in month 1 schedule and firstMonthPaymentCents", () => {
+    const result = calculateEmi({
+      ...baseInput,
+      principalCents: 1000000,
+      annualInterestRatePercent: 12,
+      processingChargeCents: 20000,
+      tenureMonths: 12,
+    });
+
+    // Upfront fee is PF + 18% GST on PF = 20000 + 3600 = 23600
+    expect(result.totalUpfrontFeeCents).toBe(23600);
+
+    // Month 1 schedule has interest = 10000 cents (1% of 1000000)
+    // 18% GST on 10000 is 1800 cents
+    expect(result.schedule[0].interestCents).toBe(10000);
+    expect(result.schedule[0].gstOnInterestCents).toBe(1800);
+    expect(result.schedule[0].upfrontFeeCents).toBe(23600);
+    expect(result.schedule[0].totalMonthlyPaymentCents).toBe(
+      result.schedule[0].emiCents + 1800 + 23600
+    );
+    expect(result.firstMonthPaymentCents).toBe(result.schedule[0].totalMonthlyPaymentCents);
+    expect(result.monthlyPaymentWithGstCents).toBe(result.schedule[0].emiCents + 1800);
+
+    // Month 2 schedule has no upfront fee
+    expect(result.schedule[1].upfrontFeeCents).toBe(0);
+    expect(result.schedule[1].totalMonthlyPaymentCents).toBe(
+      result.schedule[1].emiCents + result.schedule[1].gstOnInterestCents
+    );
   });
 
   it("handles getEmiCardholderSplits correctly for multi-split and single cardholder fallback", () => {
@@ -173,17 +206,18 @@ describe("calculateEmi", () => {
           { cardholderId: "user-2", percentage: 50 },
         ],
       },
-      10000
+      10000,
+      2000
     );
     expect(multi).toHaveLength(2);
-    expect(multi[0]).toEqual({ cardholderId: "user-1", percentage: 50, monthlyEmiCents: 5000 });
-    expect(multi[1]).toEqual({ cardholderId: "user-2", percentage: 50, monthlyEmiCents: 5000 });
+    expect(multi[0]).toEqual({ cardholderId: "user-1", percentage: 50, firstMonthPaymentCents: 6000, monthlyEmiCents: 5000, upfrontFeeCents: 1000 });
+    expect(multi[1]).toEqual({ cardholderId: "user-2", percentage: 50, firstMonthPaymentCents: 6000, monthlyEmiCents: 5000, upfrontFeeCents: 1000 });
 
-    const single = getEmiCardholderSplits({ cardholderId: "user-1" }, 10000);
+    const single = getEmiCardholderSplits({ cardholderId: "user-1" }, 10000, 2000);
     expect(single).toHaveLength(1);
-    expect(single[0]).toEqual({ cardholderId: "user-1", percentage: 100, monthlyEmiCents: 10000 });
+    expect(single[0]).toEqual({ cardholderId: "user-1", percentage: 100, firstMonthPaymentCents: 12000, monthlyEmiCents: 10000, upfrontFeeCents: 2000 });
 
-    const empty = getEmiCardholderSplits({}, 10000);
+    const empty = getEmiCardholderSplits({}, 10000, 2000);
     expect(empty).toHaveLength(0);
   });
 });

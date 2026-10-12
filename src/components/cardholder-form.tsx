@@ -26,7 +26,7 @@ export function CardholderSection({ cardId }: { cardId?: string }) {
   activeEmis.forEach(({ emi }) => {
     const calc = calcMap.get(emi.id);
     if (!calc) return;
-    const splits = getEmiCardholderSplits(emi, calc.emiCents);
+    const splits = getEmiCardholderSplits(emi, calc.monthlyPaymentWithGstCents, calc.totalUpfrontFeeCents);
     splits.forEach((s) => {
       const prev = cardholderMonthlyMap.get(s.cardholderId) ?? { totalCents: 0, count: 0 };
       prev.totalCents += s.monthlyEmiCents;

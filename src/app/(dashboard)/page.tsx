@@ -42,7 +42,7 @@ export default function DashboardPage() {
   data.activeEmis.forEach(({ emi }) => {
     const calc = calcMap.get(emi.id);
     if (!calc) return;
-    const splits = getEmiCardholderSplits(emi, calc.emiCents);
+    const splits = getEmiCardholderSplits(emi, calc.monthlyPaymentWithGstCents, calc.totalUpfrontFeeCents);
     splits.forEach((s) => {
       const existing = cardholderTotals.get(s.cardholderId) ?? { monthlyCents: 0, activeEmiCount: 0 };
       existing.monthlyCents += s.monthlyEmiCents;
@@ -332,9 +332,14 @@ export default function DashboardPage() {
 
                       <div className="text-right shrink-0">
                         <p className="text-sm sm:text-base font-bold text-zinc-950 tabular-nums">
-                          {calc ? formatCents(calc.emiCents, card.currency) : formatCents(emi.principalCents, card.currency)}
+                          {calc ? formatCents(calc.monthlyPaymentWithGstCents, card.currency) : formatCents(emi.principalCents, card.currency)}
                           <span className="text-xs font-normal text-zinc-500">/mo</span>
                         </p>
+                        {calc && calc.totalUpfrontFeeCents > 0 ? (
+                          <p className="text-[11px] font-semibold text-amber-700 tabular-nums">
+                            1st mo: {formatCents(calc.firstMonthPaymentCents, card.currency)}
+                          </p>
+                        ) : null}
                         <p className="text-[11px] text-zinc-400 tabular-nums">
                           Total: {formatCents(emi.principalCents, card.currency)}
                         </p>
@@ -363,7 +368,7 @@ export default function DashboardPage() {
                         <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mr-1">
                           Split:
                         </span>
-                        {getEmiCardholderSplits(emi, calc.emiCents).map((split) => {
+                        {getEmiCardholderSplits(emi, calc.monthlyPaymentWithGstCents, calc.totalUpfrontFeeCents).map((split) => {
                           const chName = cardholderMap.get(split.cardholderId) ?? "Cardholder";
                           return (
                             <span
@@ -371,7 +376,14 @@ export default function DashboardPage() {
                               className="inline-flex items-center gap-1 rounded-md bg-indigo-50/90 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 border border-indigo-100 tabular-nums"
                             >
                               <span className="text-zinc-600 font-medium">{chName}:</span>
-                              <span>{formatCents(split.monthlyEmiCents, card.currency)}</span>
+                              {split.upfrontFeeCents > 0 ? (
+                                <>
+                                  <span className="text-indigo-900 font-bold">1st mo: {formatCents(split.firstMonthPaymentCents, card.currency)}</span>
+                                  <span className="text-zinc-500 font-normal">({formatCents(split.monthlyEmiCents, card.currency)}/mo)</span>
+                                </>
+                              ) : (
+                                <span>{formatCents(split.monthlyEmiCents, card.currency)}/mo</span>
+                              )}
                               <span className="text-indigo-500 font-normal">({split.percentage}%)</span>
                             </span>
                           );

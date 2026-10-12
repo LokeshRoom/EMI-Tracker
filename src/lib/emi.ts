@@ -22,6 +22,9 @@ export interface EmiScheduleItem {
   emiCents: number;
   interestCents: number;
   principalCents: number;
+  gstOnInterestCents: number;
+  upfrontFeeCents: number;
+  totalMonthlyPaymentCents: number;
   closingBalanceCents: number;
   isPaid: boolean;
 }
@@ -29,13 +32,18 @@ export interface EmiScheduleItem {
 export interface EmiSplitCalculation {
   cardholderId: string;
   percentage: number;
+  firstMonthPaymentCents: number;
   monthlyEmiCents: number;
+  upfrontFeeCents: number;
   totalOutlayCents: number;
   totalInterestCents: number;
 }
 
 export interface EmiCalculation {
   emiCents: number;
+  monthlyPaymentWithGstCents: number;
+  totalUpfrontFeeCents: number;
+  firstMonthPaymentCents: number;
   totalEmiPaidCents: number;
   totalInterestCents: number;
   totalAdditionalCostCents: number;
@@ -75,6 +83,7 @@ export function calculateEmi(input: EmiCalculationInput): EmiCalculation {
     const gstOnInterestCents = 0;
     const gstOnProcessingChargeCents = applyGst(input.processingChargeCents);
     const gstOnAdditionalCostCents = applyGst(totalAdditionalCostCents);
+    const totalUpfrontFeeCents = input.processingChargeCents + gstOnProcessingChargeCents;
     const totalGstCents =
       gstOnInterestCents + gstOnProcessingChargeCents + gstOnAdditionalCostCents;
     const totalOutlayCents =
@@ -82,6 +91,9 @@ export function calculateEmi(input: EmiCalculationInput): EmiCalculation {
 
     return {
       emiCents: 0,
+      monthlyPaymentWithGstCents: 0,
+      totalUpfrontFeeCents,
+      firstMonthPaymentCents: totalUpfrontFeeCents,
       totalEmiPaidCents: 0,
       totalInterestCents: 0,
       totalAdditionalCostCents,
@@ -98,6 +110,9 @@ export function calculateEmi(input: EmiCalculationInput): EmiCalculation {
       schedule: [],
     };
   }
+
+  const gstOnProcessingChargeCents = applyGst(input.processingChargeCents);
+  const totalUpfrontFeeCents = input.processingChargeCents + gstOnProcessingChargeCents;
 
   let emiExact: Decimal;
   if (principal.isZero() || rate.isZero()) {
@@ -116,18 +131,27 @@ export function calculateEmi(input: EmiCalculationInput): EmiCalculation {
     const openingBalance = balance;
     const interest = balance.mul(rate).toDecimalPlaces(0, Decimal.ROUND_HALF_UP);
     const isPaid = month <= paidInstallmentsCount;
+    const upfrontFeeCents = month === 1 ? totalUpfrontFeeCents : 0;
 
     if (month === tenureMonths) {
       const principalPayment = balance;
       const emiPayment = balance.plus(interest);
       balance = new Decimal(0);
+      const interestCents = roundCents(interest);
+      const principalCents = roundCents(principalPayment);
+      const emiCents = roundCents(emiPayment);
+      const gstOnInterestCents = applyGst(interestCents);
+      const totalMonthlyPaymentCents = emiCents + gstOnInterestCents + upfrontFeeCents;
       schedule.push({
         month,
         startMonthLabel: monthLabelFromStartMonth(input.startMonth, month - 1),
         openingBalanceCents: roundCents(openingBalance),
-        emiCents: roundCents(emiPayment),
-        interestCents: roundCents(interest),
-        principalCents: roundCents(principalPayment),
+        emiCents,
+        interestCents,
+        principalCents,
+        gstOnInterestCents,
+        upfrontFeeCents,
+        totalMonthlyPaymentCents,
         closingBalanceCents: 0,
         isPaid,
       });
@@ -140,14 +164,22 @@ export function calculateEmi(input: EmiCalculationInput): EmiCalculation {
 
     const emiPayment = principalPayment.plus(interest);
     balance = balance.minus(principalPayment);
+    const interestCents = roundCents(interest);
+    const principalCents = roundCents(principalPayment);
+    const emiCents = roundCents(emiPayment);
+    const gstOnInterestCents = applyGst(interestCents);
+    const totalMonthlyPaymentCents = emiCents + gstOnInterestCents + upfrontFeeCents;
 
     schedule.push({
       month,
       startMonthLabel: monthLabelFromStartMonth(input.startMonth, month - 1),
       openingBalanceCents: roundCents(openingBalance),
-      emiCents: roundCents(emiPayment),
-      interestCents: roundCents(interest),
-      principalCents: roundCents(principalPayment),
+      emiCents,
+      interestCents,
+      principalCents,
+      gstOnInterestCents,
+      upfrontFeeCents,
+      totalMonthlyPaymentCents,
       closingBalanceCents: roundCents(balance),
       isPaid,
     });
@@ -161,7 +193,6 @@ export function calculateEmi(input: EmiCalculationInput): EmiCalculation {
       : input.additionalCostCents;
 
   const gstOnInterestCents = applyGst(totalInterestCents);
-  const gstOnProcessingChargeCents = applyGst(input.processingChargeCents);
   const gstOnAdditionalCostCents = applyGst(totalAdditionalCostCents);
   const totalGstCents =
     gstOnInterestCents + gstOnProcessingChargeCents + gstOnAdditionalCostCents;
@@ -197,12 +228,19 @@ export function calculateEmi(input: EmiCalculationInput): EmiCalculation {
     gstOnRemainingInterestCents +
     gstOnRemainingAdditionalCostCents;
 
+  const monthlyPaymentWithGstCents = (schedule[0]?.emiCents ?? 0) + (schedule[0]?.gstOnInterestCents ?? 0);
+  const firstMonthPaymentCents = schedule[0]?.totalMonthlyPaymentCents ?? 0;
+
   const splits: EmiSplitCalculation[] = (input.splits ?? []).map((split) => {
     const pct = new Decimal(split.percentage).div(100);
+    const monthlyEmiCents = roundCents(new Decimal(monthlyPaymentWithGstCents).mul(pct));
+    const upfrontFeeCents = roundCents(new Decimal(totalUpfrontFeeCents).mul(pct));
     return {
       cardholderId: split.cardholderId,
       percentage: split.percentage,
-      monthlyEmiCents: roundCents(new Decimal(emiCents).mul(pct)),
+      firstMonthPaymentCents: monthlyEmiCents + upfrontFeeCents,
+      monthlyEmiCents,
+      upfrontFeeCents,
       totalOutlayCents: roundCents(new Decimal(totalOutlayCents).mul(pct)),
       totalInterestCents: roundCents(new Decimal(totalInterestCents).mul(pct)),
     };
@@ -210,6 +248,9 @@ export function calculateEmi(input: EmiCalculationInput): EmiCalculation {
 
   return {
     emiCents,
+    monthlyPaymentWithGstCents,
+    totalUpfrontFeeCents,
+    firstMonthPaymentCents,
     totalEmiPaidCents,
     totalInterestCents,
     totalAdditionalCostCents,
@@ -227,17 +268,30 @@ export function calculateEmi(input: EmiCalculationInput): EmiCalculation {
   };
 }
 
+export interface EmiCardholderSplit {
+  cardholderId: string;
+  percentage: number;
+  firstMonthPaymentCents: number;
+  monthlyEmiCents: number;
+  upfrontFeeCents: number;
+}
+
 export function getEmiCardholderSplits(
   emi: { cardholderId?: string; splits?: EmiSplit[] },
-  monthlyEmiCents: number
-): { cardholderId: string; percentage: number; monthlyEmiCents: number }[] {
+  monthlyEmiCents: number,
+  upfrontFeeCents = 0
+): EmiCardholderSplit[] {
   if (emi.splits && emi.splits.length > 0) {
     return emi.splits.map((split) => {
       const pct = new Decimal(split.percentage).div(100);
+      const monthly = roundCents(new Decimal(monthlyEmiCents).mul(pct));
+      const upfront = roundCents(new Decimal(upfrontFeeCents).mul(pct));
       return {
         cardholderId: split.cardholderId,
         percentage: split.percentage,
-        monthlyEmiCents: roundCents(new Decimal(monthlyEmiCents).mul(pct)),
+        firstMonthPaymentCents: monthly + upfront,
+        monthlyEmiCents: monthly,
+        upfrontFeeCents: upfront,
       };
     });
   }
@@ -246,7 +300,9 @@ export function getEmiCardholderSplits(
       {
         cardholderId: emi.cardholderId,
         percentage: 100,
+        firstMonthPaymentCents: monthlyEmiCents + upfrontFeeCents,
         monthlyEmiCents,
+        upfrontFeeCents,
       },
     ];
   }

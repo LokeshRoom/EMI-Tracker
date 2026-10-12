@@ -53,7 +53,7 @@ async function getDashboardData(uid: string): Promise<DashboardData> {
     0
   );
   const monthlyCommitmentCents = calculations.reduce(
-    (sum, item) => sum + item.calculation.emiCents,
+    (sum, item) => sum + item.calculation.monthlyPaymentWithGstCents,
     0
   );
   const totalInterestCents = calculations.reduce(

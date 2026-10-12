@@ -77,13 +77,14 @@ export function EmiSummary({
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Monthly EMI"
-          value={formatCents(calculation.emiCents, currency)}
-          hint={emi.tenureMonths > 0 ? `${emi.tenureMonths} months` : "No tenure"}
+          label="1st Month Payable"
+          value={formatCents(calculation.firstMonthPaymentCents, currency)}
+          hint={calculation.totalUpfrontFeeCents > 0 ? `Incl. ${formatCents(calculation.totalUpfrontFeeCents, currency)} upfront fee` : "EMI + 18% GST on int."}
         />
         <StatCard
-          label="Total EMI paid"
-          value={formatCents(calculation.totalEmiPaidCents, currency)}
+          label="Subsequent Monthly EMI"
+          value={formatCents(calculation.monthlyPaymentWithGstCents, currency)}
+          hint={`Base: ${formatCents(calculation.emiCents, currency)} + 18% GST on int.`}
         />
         <StatCard
           label="Total interest"
@@ -98,17 +99,17 @@ export function EmiSummary({
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Processing charge"
-          value={formatCents(emi.processingChargeCents, currency)}
+          label="Upfront fee (PF + GST)"
+          value={formatCents(calculation.totalUpfrontFeeCents, currency)}
+          hint={`PF: ${formatCents(emi.processingChargeCents, currency)} + 18% GST`}
         />
         <StatCard
           label="GST on processing"
           value={formatCents(calculation.gstOnProcessingChargeCents, currency)}
         />
         <StatCard
-          label="Additional cost"
-          value={formatCents(calculation.totalAdditionalCostCents, currency)}
-          hint={emi.additionalCostFrequency === "monthly" ? "Monthly" : "One-time"}
+          label="Total EMI paid"
+          value={formatCents(calculation.totalEmiPaidCents, currency)}
         />
         <StatCard
           label="Total GST"
@@ -129,7 +130,9 @@ export function EmiSummary({
                 <tr className="border-b border-zinc-200 text-xs uppercase tracking-wide text-zinc-500">
                   <th className="px-3 py-2">Cardholder</th>
                   <th className="px-3 py-2">Share %</th>
-                  <th className="px-3 py-2">Monthly EMI</th>
+                  <th className="px-3 py-2">1st Month Payable</th>
+                  <th className="px-3 py-2">Subsequent EMI</th>
+                  <th className="px-3 py-2">Upfront Fee (PF+GST)</th>
                   <th className="px-3 py-2">Total Interest</th>
                   <th className="px-3 py-2">Total Outlay</th>
                 </tr>
@@ -141,7 +144,9 @@ export function EmiSummary({
                     <tr key={s.cardholderId} className="border-b border-zinc-100 last:border-0">
                       <td className="px-3 py-2 font-medium text-zinc-900">{ch?.name ?? "Cardholder"}</td>
                       <td className="px-3 py-2 text-zinc-700">{s.percentage}%</td>
+                      <td className="px-3 py-2 font-bold text-indigo-700">{formatCents(s.firstMonthPaymentCents, currency)}</td>
                       <td className="px-3 py-2 font-medium text-zinc-900">{formatCents(s.monthlyEmiCents, currency)}</td>
+                      <td className="px-3 py-2 text-zinc-700">{formatCents(s.upfrontFeeCents, currency)}</td>
                       <td className="px-3 py-2 text-zinc-700">{formatCents(s.totalInterestCents, currency)}</td>
                       <td className="px-3 py-2 font-medium text-zinc-900">{formatCents(s.totalOutlayCents, currency)}</td>
                     </tr>
@@ -164,16 +169,18 @@ export function EmiSummary({
           <EmptyState title="No schedule" description="This EMI has no tenure." />
         ) : (
           <div className="overflow-x-auto touch-pan-x">
-            <table className="w-full min-w-[700px] text-left text-sm">
+            <table className="w-full min-w-[820px] text-left text-sm">
               <thead>
                 <tr className="border-b border-zinc-200 text-xs uppercase tracking-wide text-zinc-500">
                   <th className="px-3 py-2">Month</th>
                   <th className="px-3 py-2">Date</th>
                   <th className="px-3 py-2">Status</th>
                   <th className="px-3 py-2">Opening balance</th>
-                  <th className="px-3 py-2">EMI</th>
-                  <th className="px-3 py-2">Interest</th>
                   <th className="px-3 py-2">Principal</th>
+                  <th className="px-3 py-2">Interest</th>
+                  <th className="px-3 py-2">GST (18% Int)</th>
+                  <th className="px-3 py-2">Upfront Fee</th>
+                  <th className="px-3 py-2">Total Payable</th>
                   <th className="px-3 py-2">Closing balance</th>
                 </tr>
               </thead>
@@ -199,9 +206,17 @@ export function EmiSummary({
                       )}
                     </td>
                     <td className="px-3 py-2 text-zinc-700">{formatCents(item.openingBalanceCents, currency)}</td>
-                    <td className="px-3 py-2 font-medium text-zinc-900">{formatCents(item.emiCents, currency)}</td>
-                    <td className="px-3 py-2 text-zinc-700">{formatCents(item.interestCents, currency)}</td>
                     <td className="px-3 py-2 text-zinc-700">{formatCents(item.principalCents, currency)}</td>
+                    <td className="px-3 py-2 text-zinc-700">{formatCents(item.interestCents, currency)}</td>
+                    <td className="px-3 py-2 text-zinc-700">{formatCents(item.gstOnInterestCents, currency)}</td>
+                    <td className="px-3 py-2 text-zinc-700">
+                      {item.upfrontFeeCents > 0 ? (
+                        <span className="font-semibold text-amber-700">{formatCents(item.upfrontFeeCents, currency)}</span>
+                      ) : (
+                        <span className="text-zinc-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 font-bold text-zinc-900">{formatCents(item.totalMonthlyPaymentCents, currency)}</td>
                     <td className="px-3 py-2 text-zinc-700">{formatCents(item.closingBalanceCents, currency)}</td>
                   </tr>
                 ))}
