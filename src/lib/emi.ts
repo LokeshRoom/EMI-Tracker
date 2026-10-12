@@ -226,3 +226,29 @@ export function calculateEmi(input: EmiCalculationInput): EmiCalculation {
     schedule,
   };
 }
+
+export function getEmiCardholderSplits(
+  emi: { cardholderId?: string; splits?: EmiSplit[] },
+  monthlyEmiCents: number
+): { cardholderId: string; percentage: number; monthlyEmiCents: number }[] {
+  if (emi.splits && emi.splits.length > 0) {
+    return emi.splits.map((split) => {
+      const pct = new Decimal(split.percentage).div(100);
+      return {
+        cardholderId: split.cardholderId,
+        percentage: split.percentage,
+        monthlyEmiCents: roundCents(new Decimal(monthlyEmiCents).mul(pct)),
+      };
+    });
+  }
+  if (emi.cardholderId) {
+    return [
+      {
+        cardholderId: emi.cardholderId,
+        percentage: 100,
+        monthlyEmiCents,
+      },
+    ];
+  }
+  return [];
+}

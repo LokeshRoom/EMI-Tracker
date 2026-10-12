@@ -43,6 +43,8 @@ async function getDashboardData(uid: string): Promise<DashboardData> {
       processingChargeCents: emi.processingChargeCents,
       additionalCostCents: emi.additionalCostCents,
       additionalCostFrequency: emi.additionalCostFrequency,
+      paidInstallmentsCount: emi.paidInstallmentsCount,
+      splits: emi.splits,
     }),
   }));
 

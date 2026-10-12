@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateEmi } from "./emi";
+import { calculateEmi, getEmiCardholderSplits } from "./emi";
 import { currentStartMonth, isValidStartMonth, monthLabelFromStartMonth, parseCents } from "./money";
 import type { EmiCalculationInput } from "./emi";
 
@@ -162,5 +162,28 @@ describe("calculateEmi", () => {
     expect(result.splits[1].percentage).toBe(40);
     expect(result.splits[1].monthlyEmiCents).toBe(4000);
     expect(result.splits[1].totalOutlayCents).toBe(48000);
+  });
+
+  it("handles getEmiCardholderSplits correctly for multi-split and single cardholder fallback", () => {
+    const multi = getEmiCardholderSplits(
+      {
+        cardholderId: "primary",
+        splits: [
+          { cardholderId: "user-1", percentage: 50 },
+          { cardholderId: "user-2", percentage: 50 },
+        ],
+      },
+      10000
+    );
+    expect(multi).toHaveLength(2);
+    expect(multi[0]).toEqual({ cardholderId: "user-1", percentage: 50, monthlyEmiCents: 5000 });
+    expect(multi[1]).toEqual({ cardholderId: "user-2", percentage: 50, monthlyEmiCents: 5000 });
+
+    const single = getEmiCardholderSplits({ cardholderId: "user-1" }, 10000);
+    expect(single).toHaveLength(1);
+    expect(single[0]).toEqual({ cardholderId: "user-1", percentage: 100, monthlyEmiCents: 10000 });
+
+    const empty = getEmiCardholderSplits({}, 10000);
+    expect(empty).toHaveLength(0);
   });
 });

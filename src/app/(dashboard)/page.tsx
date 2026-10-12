@@ -12,12 +12,15 @@ import {
   Spinner,
   StatCard,
 } from "@/components/ui";
+import { useCardholders } from "@/hooks/useCardholders";
 import { useDashboard } from "@/hooks/useDashboard";
+import { getEmiCardholderSplits } from "@/lib/emi";
 import { getErrorMessage } from "@/lib/firebase";
 import { formatCents } from "@/lib/money";
 
 export default function DashboardPage() {
   const dashboard = useDashboard();
+  const cardholders = useCardholders();
 
   if (dashboard.isLoading) {
     return <Spinner label="Loading dashboard..." />;
@@ -32,6 +35,21 @@ export default function DashboardPage() {
 
   // Build a lookup map for calculated values (paid installments, emiCents)
   const calcMap = new Map(data.calculations.map((c) => [c.emi.id, c.calculation]));
+  const cardholderMap = new Map((cardholders.data ?? []).map((ch) => [ch.id, ch.name]));
+
+  // Aggregate monthly amounts per cardholder across active EMIs
+  const cardholderTotals = new Map<string, { monthlyCents: number; activeEmiCount: number }>();
+  data.activeEmis.forEach(({ emi }) => {
+    const calc = calcMap.get(emi.id);
+    if (!calc) return;
+    const splits = getEmiCardholderSplits(emi, calc.emiCents);
+    splits.forEach((s) => {
+      const existing = cardholderTotals.get(s.cardholderId) ?? { monthlyCents: 0, activeEmiCount: 0 };
+      existing.monthlyCents += s.monthlyEmiCents;
+      existing.activeEmiCount += 1;
+      cardholderTotals.set(s.cardholderId, existing);
+    });
+  });
 
   return (
     <div className="space-y-6">
@@ -105,6 +123,57 @@ export default function DashboardPage() {
           }
         />
       </div>
+
+      {/* Monthly Payment & Cardholder Split Breakdown Banner */}
+      {data.activeEmis.length > 0 ? (
+        <Card className="bg-gradient-to-br from-indigo-950 via-slate-900 to-zinc-950 text-white border-0 shadow-lg p-4 sm:p-5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-indigo-500/20 px-2.5 py-0.5 text-xs font-semibold text-indigo-300 border border-indigo-400/30">
+                  Monthly Payment Breakdown
+                </span>
+                <span className="text-xs text-indigo-200/70">
+                  {data.activeEmis.length} active {data.activeEmis.length === 1 ? "EMI" : "EMIs"}
+                </span>
+              </div>
+              <p className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1.5 tabular-nums text-white">
+                {formatCents(data.monthlyCommitmentCents)}
+                <span className="text-xs sm:text-sm font-normal text-indigo-300 ml-1.5">/ month total</span>
+              </p>
+            </div>
+
+            {/* Per-cardholder share breakdown */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-white/10">
+              {Array.from(cardholderTotals.entries()).map(([chId, stats]) => {
+                const name = cardholderMap.get(chId) ?? "Cardholder";
+                const pct = data.monthlyCommitmentCents > 0
+                  ? Math.round((stats.monthlyCents / data.monthlyCommitmentCents) * 100)
+                  : 0;
+                return (
+                  <div
+                    key={chId}
+                    className="flex items-center gap-2.5 rounded-xl bg-white/10 backdrop-blur-xs px-3 py-2 border border-white/15"
+                  >
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-400/30 text-xs font-bold text-white">
+                      {name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-white">{name}</span>
+                        <span className="text-[10px] text-indigo-300 font-medium">({pct}%)</span>
+                      </div>
+                      <p className="text-xs font-semibold text-indigo-200 tabular-nums">
+                        {formatCents(stats.monthlyCents)}/mo
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </Card>
+      ) : null}
 
       {/* Main Grid: Cards & Recent EMIs */}
       <div className="grid gap-6 lg:grid-cols-2">
@@ -287,6 +356,28 @@ export default function DashboardPage() {
                         />
                       </div>
                     </div>
+
+                    {/* Per-EMI Cardholder Split Breakdown Chips */}
+                    {calc ? (
+                      <div className="mt-2.5 pt-2 border-t border-zinc-100/80 flex flex-wrap items-center gap-1.5">
+                        <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mr-1">
+                          Split:
+                        </span>
+                        {getEmiCardholderSplits(emi, calc.emiCents).map((split) => {
+                          const chName = cardholderMap.get(split.cardholderId) ?? "Cardholder";
+                          return (
+                            <span
+                              key={split.cardholderId}
+                              className="inline-flex items-center gap-1 rounded-md bg-indigo-50/90 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 border border-indigo-100 tabular-nums"
+                            >
+                              <span className="text-zinc-600 font-medium">{chName}:</span>
+                              <span>{formatCents(split.monthlyEmiCents, card.currency)}</span>
+                              <span className="text-indigo-500 font-normal">({split.percentage}%)</span>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    ) : null}
                   </Link>
                 );
               })}

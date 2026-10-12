@@ -127,24 +127,32 @@ export async function getCardholders(cardId?: string, uid?: string): Promise<Car
 
   // 1. Fetch from global user cardholders
   if (currentUid) {
-    const qGlobal = query(collection(db, "users", currentUid, "cardholders"));
-    const snapGlobal = await getDocs(qGlobal);
-    snapGlobal.docs.forEach((item) => {
-      seenIds.add(item.id);
-      list.push({ id: item.id, ...item.data() } as Cardholder);
-    });
+    try {
+      const qGlobal = query(collection(db, "users", currentUid, "cardholders"));
+      const snapGlobal = await getDocs(qGlobal);
+      snapGlobal.docs.forEach((item) => {
+        seenIds.add(item.id);
+        list.push({ id: item.id, ...item.data() } as Cardholder);
+      });
+    } catch (err) {
+      console.warn("Could not fetch global cardholders:", err);
+    }
   }
 
   // 2. Backward compatibility: if cardId is given, fetch from card subcollection too
   if (cardId) {
-    const qCard = query(collection(db, "cards", cardId, "cardholders"));
-    const snapCard = await getDocs(qCard);
-    snapCard.docs.forEach((item) => {
-      if (!seenIds.has(item.id)) {
-        seenIds.add(item.id);
-        list.push({ id: item.id, ...item.data() } as Cardholder);
-      }
-    });
+    try {
+      const qCard = query(collection(db, "cards", cardId, "cardholders"));
+      const snapCard = await getDocs(qCard);
+      snapCard.docs.forEach((item) => {
+        if (!seenIds.has(item.id)) {
+          seenIds.add(item.id);
+          list.push({ id: item.id, ...item.data() } as Cardholder);
+        }
+      });
+    } catch (err) {
+      console.warn("Could not fetch card cardholders:", err);
+    }
   }
 
   return sortByTimestampDescending(list);
