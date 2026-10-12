@@ -9,7 +9,7 @@ import { getErrorMessage } from "@/lib/firebase";
 import { parseCents } from "@/lib/money";
 import { cardFormSchema, type CardFormValues } from "@/lib/validation";
 import type { Card, CardInput } from "@/types";
-import { Button, ErrorNotice, Field, Input, SecondaryButton } from "./ui";
+import { Button, ErrorNotice, Field, Input, SecondaryButton, Select } from "./ui";
 
 function toCardInput(values: CardFormValues): CardInput {
   const creditLimit = values.creditLimit.trim();
@@ -124,7 +124,9 @@ export function CardForm({
           <Input inputMode="numeric" maxLength={4} placeholder="e.g. 4321" {...register("last4")} />
         </Field>
         <Field label="Currency" error={errors.currency?.message}>
-          <Input maxLength={3} {...register("currency")} />
+          <Select {...register("currency")}>
+            <option value="INR">INR (₹) - Indian Rupee</option>
+          </Select>
         </Field>
         <Field label="Credit limit (optional)" error={errors.creditLimit?.message}>
           <Input inputMode="decimal" placeholder="0.00" {...register("creditLimit")} />

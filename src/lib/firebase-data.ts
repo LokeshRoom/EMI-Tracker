@@ -151,7 +151,7 @@ export async function getCardholders(cardId?: string, uid?: string): Promise<Car
 }
 
 export async function createCardholder(
-  input: { name: string; phone?: string; email?: string },
+  input: { name: string; phone?: string; email: string },
   cardId?: string,
   uid?: string
 ): Promise<Cardholder> {
@@ -161,14 +161,12 @@ export async function createCardholder(
 
   const data: Record<string, unknown> = {
     name: input.name,
+    email: input.email.trim(),
     createdAt: now,
     updatedAt: now,
   };
   if (input.phone) {
     data.phone = input.phone;
-  }
-  if (input.email) {
-    data.email = input.email;
   }
 
   // Always persist into global user cardholders list if authenticated

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isAmountInput, isValidStartMonth } from "@/lib/money";
+import { isAmountInput, isValidStartMonth } from "./money";
 
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -53,9 +53,9 @@ export const cardholderFormSchema = z.object({
   phone: z.string().max(20, "Keep phone under 20 characters."),
   email: z
     .string()
-    .refine((value) => value.trim() === "" || value.includes("@"), {
-      message: "Enter a valid email address.",
-    }),
+    .trim()
+    .email("Enter a valid email address.")
+    .max(120, "Keep email under 120 characters."),
 });
 
 export const emiSplitSchema = z.object({

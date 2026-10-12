@@ -37,9 +37,9 @@ export function CardholderSection({ cardId }: { cardId?: string }) {
     setFormError(null);
     try {
       await createCardholder.mutateAsync({
-        name: values.name,
-        phone: values.phone || undefined,
-        email: values.email || undefined,
+        name: values.name.trim(),
+        phone: values.phone.trim() || undefined,
+        email: values.email.trim(),
       });
       reset({ name: "", phone: "", email: "" });
     } catch (error) {
@@ -91,11 +91,10 @@ export function CardholderSection({ cardId }: { cardId?: string }) {
                   </div>
                   <div>
                     <p className="text-sm font-bold text-zinc-900">{cardholder.name}</p>
-                    {cardholder.phone || cardholder.email ? (
-                      <p className="text-xs text-zinc-500">
-                        {[cardholder.phone, cardholder.email].filter(Boolean).join(" · ")}
-                      </p>
-                    ) : null}
+                    <p className="text-xs text-zinc-500">
+                      {cardholder.email}
+                      {cardholder.phone ? ` · ${cardholder.phone}` : ""}
+                    </p>
                   </div>
                 </div>
                 <SecondaryButton
@@ -123,7 +122,7 @@ export function CardholderSection({ cardId }: { cardId?: string }) {
           <Field label="Phone (optional)" error={errors.phone?.message}>
             <Input placeholder="+91 98765 43210" {...register("phone")} />
           </Field>
-          <Field label="Email (optional)" error={errors.email?.message}>
+          <Field label="Email" error={errors.email?.message}>
             <Input type="email" placeholder="priya@example.com" {...register("email")} />
           </Field>
         </div>

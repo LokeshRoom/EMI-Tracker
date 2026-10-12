@@ -36,7 +36,7 @@ export interface Cardholder {
   id: string;
   name: string;
   phone?: string;
-  email?: string;
+  email: string;
   ownerUid?: string;
   createdAt?: Timestamp | null;
   updatedAt?: Timestamp | null;
@@ -90,7 +90,7 @@ export interface CardFormValues {
 export interface CardholderInput {
   name: string;
   phone?: string;
-  email?: string;
+  email: string;
 }
 
 export interface CardholderFormValues {

@@ -25,7 +25,7 @@ export function useCreateCardholder(cardId?: string) {
   const uid = auth.status === "authenticated" ? auth.user.uid : undefined;
 
   return useMutation({
-    mutationFn: (input: { name: string; phone?: string; email?: string }) =>
+    mutationFn: (input: { name: string; phone?: string; email: string }) =>
       createCardholder(input, cardId, uid),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cardholders"] });
