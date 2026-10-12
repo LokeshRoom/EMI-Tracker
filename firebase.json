@@ -3,7 +3,9 @@
     "rules": "firestore.rules"
   },
   "hosting": {
+    "site": "myemitracker",
     "public": "out",
+    "cleanUrls": true,
     "ignore": [
       "firebase.json",
       "**/.*",

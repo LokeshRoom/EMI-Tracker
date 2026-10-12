@@ -145,7 +145,7 @@ export function NotificationBell() {
       </button>
 
       {isOpen ? (
-        <div className="absolute right-0 z-50 mt-2 w-80 rounded-lg border border-zinc-200 bg-white p-3 shadow-lg ring-1 ring-black/5 sm:w-96">
+        <div className="absolute right-0 z-50 mt-2 w-[calc(100vw-1.5rem)] max-w-sm sm:w-96 rounded-lg border border-zinc-200 bg-white p-3 shadow-lg ring-1 ring-black/5">
           <div className="flex items-center justify-between border-b border-zinc-100 pb-2">
             <span className="font-semibold text-zinc-900 text-sm">Payment Due Reminders</span>
             {dueItems.length > 0 ? (

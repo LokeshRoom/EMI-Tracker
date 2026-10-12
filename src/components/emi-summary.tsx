@@ -154,12 +154,17 @@ export function EmiSummary({
       ) : null}
 
       <Card>
-        <h2 className="mb-4 text-lg font-semibold text-zinc-900">Monthly schedule</h2>
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+          <h2 className="text-lg font-semibold text-zinc-900">Monthly schedule</h2>
+          {calculation.schedule.length > 0 ? (
+            <span className="text-[11px] text-zinc-400 sm:hidden">Swipe horizontally to view full schedule →</span>
+          ) : null}
+        </div>
         {calculation.schedule.length === 0 ? (
           <EmptyState title="No schedule" description="This EMI has no tenure." />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-sm">
+          <div className="overflow-x-auto touch-pan-x">
+            <table className="w-full min-w-[700px] text-left text-sm">
               <thead>
                 <tr className="border-b border-zinc-200 text-xs uppercase tracking-wide text-zinc-500">
                   <th className="px-3 py-2">Month</th>
