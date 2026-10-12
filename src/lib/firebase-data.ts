@@ -62,6 +62,9 @@ export async function createCard(ownerUid: string, input: CardInput): Promise<Ca
     createdAt: now,
     updatedAt: now,
   };
+  if (input.cardOwner) {
+    data.cardOwner = input.cardOwner.trim();
+  }
   if (input.creditLimitCents !== undefined) {
     data.creditLimitCents = input.creditLimitCents;
   }
@@ -84,6 +87,9 @@ export async function updateCard(cardId: string, input: Partial<CardInput>): Pro
   if (input.cardLabel !== undefined) data.cardLabel = input.cardLabel;
   if (input.last4 !== undefined) data.last4 = input.last4;
   if (input.currency !== undefined) data.currency = input.currency;
+  if (input.cardOwner !== undefined) {
+    data.cardOwner = input.cardOwner ? input.cardOwner.trim() : deleteField();
+  }
   data.creditLimitCents = input.creditLimitCents ?? deleteField();
   if (input.outstandingBalanceCents !== undefined) data.outstandingBalanceCents = input.outstandingBalanceCents;
   if (input.paymentDueDay !== undefined) {
@@ -113,21 +119,46 @@ export async function deleteCard(cardId: string): Promise<void> {
   await batch.commit();
 }
 
-export async function getCardholders(cardId: string): Promise<Cardholder[]> {
+export async function getCardholders(cardId?: string, uid?: string): Promise<Cardholder[]> {
   const db = requireFirestore();
-  const q = query(collection(db, "cards", cardId, "cardholders"));
-  const snapshot = await getDocs(q);
-  const cardholders = snapshot.docs.map((item) => ({
-    id: item.id,
-    ...item.data(),
-  }) as Cardholder);
-  return sortByTimestampDescending(cardholders);
+  const currentUid = uid ?? getFirebase()?.auth.currentUser?.uid;
+  const list: Cardholder[] = [];
+  const seenIds = new Set<string>();
+
+  // 1. Fetch from global user cardholders
+  if (currentUid) {
+    const qGlobal = query(collection(db, "users", currentUid, "cardholders"));
+    const snapGlobal = await getDocs(qGlobal);
+    snapGlobal.docs.forEach((item) => {
+      seenIds.add(item.id);
+      list.push({ id: item.id, ...item.data() } as Cardholder);
+    });
+  }
+
+  // 2. Backward compatibility: if cardId is given, fetch from card subcollection too
+  if (cardId) {
+    const qCard = query(collection(db, "cards", cardId, "cardholders"));
+    const snapCard = await getDocs(qCard);
+    snapCard.docs.forEach((item) => {
+      if (!seenIds.has(item.id)) {
+        seenIds.add(item.id);
+        list.push({ id: item.id, ...item.data() } as Cardholder);
+      }
+    });
+  }
+
+  return sortByTimestampDescending(list);
 }
 
-export async function createCardholder(cardId: string, input: { name: string; phone?: string; email?: string }): Promise<Cardholder> {
+export async function createCardholder(
+  input: { name: string; phone?: string; email?: string },
+  cardId?: string,
+  uid?: string
+): Promise<Cardholder> {
   const db = requireFirestore();
   const now = serverTimestamp();
-  const ref = doc(collection(db, "cards", cardId, "cardholders"));
+  const currentUid = uid ?? getFirebase()?.auth.currentUser?.uid;
+
   const data: Record<string, unknown> = {
     name: input.name,
     createdAt: now,
@@ -139,13 +170,43 @@ export async function createCardholder(cardId: string, input: { name: string; ph
   if (input.email) {
     data.email = input.email;
   }
-  await setDoc(ref, data);
-  return { id: ref.id, ...data } as Cardholder;
+
+  // Always persist into global user cardholders list if authenticated
+  if (currentUid) {
+    const globalRef = doc(collection(db, "users", currentUid, "cardholders"));
+    await setDoc(globalRef, data);
+    return { id: globalRef.id, ...data } as Cardholder;
+  }
+
+  // Fallback to legacy card subcollection if only cardId is provided
+  if (cardId) {
+    const ref = doc(collection(db, "cards", cardId, "cardholders"));
+    await setDoc(ref, data);
+    return { id: ref.id, ...data } as Cardholder;
+  }
+
+  throw new Error("Authentication required to create a cardholder.");
 }
 
-export async function deleteCardholder(cardId: string, cardholderId: string): Promise<void> {
+export async function deleteCardholder(cardholderId: string, cardId?: string, uid?: string): Promise<void> {
   const db = requireFirestore();
-  await deleteDoc(doc(db, "cards", cardId, "cardholders", cardholderId));
+  const currentUid = uid ?? getFirebase()?.auth.currentUser?.uid;
+
+  if (currentUid) {
+    try {
+      await deleteDoc(doc(db, "users", currentUid, "cardholders", cardholderId));
+    } catch {
+      // not in global collection
+    }
+  }
+
+  if (cardId) {
+    try {
+      await deleteDoc(doc(db, "cards", cardId, "cardholders", cardholderId));
+    } catch {
+      // not in card subcollection
+    }
+  }
 }
 
 export async function getEmisForCard(cardId: string): Promise<Emi[]> {

@@ -34,6 +34,7 @@ export const cardFormSchema = z.object({
   cardLabel: z.string().min(1, "Card label is required.").max(60, "Keep card label under 60 characters."),
   last4: z.string().regex(/^\d{4}$/, "Enter the last 4 digits."),
   currency: z.string().length(3, "Use a 3-letter currency code.").transform((value) => value.toUpperCase()),
+  cardOwner: z.string().max(80, "Keep card owner under 80 characters."),
   creditLimit: optionalAmount,
   outstandingBalance: optionalAmount,
   paymentDueDay: z.string().refine((val) => {

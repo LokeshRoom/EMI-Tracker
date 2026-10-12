@@ -14,11 +14,13 @@ import { Button, ErrorNotice, Field, Input, SecondaryButton } from "./ui";
 function toCardInput(values: CardFormValues): CardInput {
   const creditLimit = values.creditLimit.trim();
   const paymentDueDay = values.paymentDueDay.trim();
+  const cardOwner = values.cardOwner.trim();
   return {
     bankName: values.bankName,
     cardLabel: values.cardLabel,
     last4: values.last4,
     currency: values.currency,
+    cardOwner: cardOwner || undefined,
     creditLimitCents: creditLimit ? parseCents(creditLimit) : undefined,
     outstandingBalanceCents: parseCents(values.outstandingBalance || "0"),
     paymentDueDay: paymentDueDay ? Number(paymentDueDay) : undefined,
@@ -35,6 +37,7 @@ function cardToFormValues(card: Card): CardFormValues {
     cardLabel: card.cardLabel,
     last4: card.last4,
     currency: card.currency,
+    cardOwner: card.cardOwner ?? "",
     creditLimit:
       card.creditLimitCents !== undefined
         ? (card.creditLimitCents / 100).toFixed(2)
@@ -76,6 +79,7 @@ export function CardForm({
           cardLabel: "",
           last4: "",
           currency: "INR",
+          cardOwner: "",
           creditLimit: "",
           outstandingBalance: "",
           paymentDueDay: "",
@@ -108,13 +112,16 @@ export function CardForm({
       {error ? <ErrorNotice message={error} /> : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Bank name" error={errors.bankName?.message}>
-          <Input {...register("bankName")} />
+          <Input placeholder="e.g. HDFC Bank, ICICI, SBI" {...register("bankName")} />
         </Field>
         <Field label="Card label" error={errors.cardLabel?.message}>
-          <Input {...register("cardLabel")} />
+          <Input placeholder="e.g. Regalia Gold, Sapphiro" {...register("cardLabel")} />
+        </Field>
+        <Field label="Card Owner (e.g. Self, Spouse, Dad)" error={errors.cardOwner?.message}>
+          <Input placeholder="e.g. Lokesh (Self), Dad, Business" {...register("cardOwner")} />
         </Field>
         <Field label="Last 4 digits" error={errors.last4?.message}>
-          <Input inputMode="numeric" maxLength={4} {...register("last4")} />
+          <Input inputMode="numeric" maxLength={4} placeholder="e.g. 4321" {...register("last4")} />
         </Field>
         <Field label="Currency" error={errors.currency?.message}>
           <Input maxLength={3} {...register("currency")} />

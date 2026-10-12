@@ -77,6 +77,7 @@ export default function CardsPage() {
                         </Link>
                         <p className="text-xs text-zinc-500">
                           {card.cardLabel} · •••• {card.last4}
+                          {card.cardOwner ? ` · Owner: ${card.cardOwner}` : ""}
                         </p>
                       </div>
                     </div>

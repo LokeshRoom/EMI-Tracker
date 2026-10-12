@@ -161,6 +161,7 @@ export default function DashboardPage() {
                           </p>
                           <p className="text-xs text-zinc-500 truncate">
                             {card.cardLabel} · •••• {card.last4}
+                            {card.cardOwner ? ` · ${card.cardOwner}` : ""}
                           </p>
                         </div>
                       </div>

@@ -22,6 +22,7 @@ export interface Card {
   cardLabel: string;
   last4: string;
   currency: string;
+  cardOwner?: string;
   creditLimitCents?: number;
   outstandingBalanceCents: number;
   paymentDueDay?: number;
@@ -36,6 +37,7 @@ export interface Cardholder {
   name: string;
   phone?: string;
   email?: string;
+  ownerUid?: string;
   createdAt?: Timestamp | null;
   updatedAt?: Timestamp | null;
 }
@@ -66,6 +68,7 @@ export interface CardInput {
   cardLabel: string;
   last4: string;
   currency: string;
+  cardOwner?: string;
   creditLimitCents?: number;
   outstandingBalanceCents: number;
   paymentDueDay?: number;
@@ -77,6 +80,7 @@ export interface CardFormValues {
   cardLabel: string;
   last4: string;
   currency: string;
+  cardOwner: string;
   creditLimit: string;
   outstandingBalance: string;
   paymentDueDay: string;

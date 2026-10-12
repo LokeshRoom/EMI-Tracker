@@ -64,7 +64,7 @@ export default function CardDetail() {
     <div>
       <PageHeader
         title={`${currentCard.bankName} · ${currentCard.cardLabel}`}
-        description={`Ends ${currentCard.last4} · ${currentCard.currency}`}
+        description={`Ends ${currentCard.last4} · ${currentCard.currency}${currentCard.cardOwner ? ` · Owner: ${currentCard.cardOwner}` : ""}`}
         actions={
           <>
             <Link href={`/cards/${currentCard.id}/edit`}>
@@ -82,31 +82,31 @@ export default function CardDetail() {
           </>
         }
       />
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Card>
-          <p className="text-sm font-medium text-zinc-500">Outstanding balance</p>
-          <p className="mt-2 text-2xl font-semibold text-zinc-900">
+          <p className="text-xs sm:text-sm font-medium text-zinc-500">Card Owner</p>
+          <p className="mt-1.5 text-lg sm:text-2xl font-bold text-zinc-900 truncate">
+            {currentCard.cardOwner || "Self"}
+          </p>
+        </Card>
+        <Card>
+          <p className="text-xs sm:text-sm font-medium text-zinc-500">Outstanding</p>
+          <p className="mt-1.5 text-lg sm:text-2xl font-bold text-zinc-900 tabular-nums">
             {formatCents(currentCard.outstandingBalanceCents, currentCard.currency)}
           </p>
         </Card>
         <Card>
-          <p className="text-sm font-medium text-zinc-500">Credit limit</p>
-          <p className="mt-2 text-2xl font-semibold text-zinc-900">
+          <p className="text-xs sm:text-sm font-medium text-zinc-500">Credit Limit</p>
+          <p className="mt-1.5 text-lg sm:text-2xl font-semibold text-zinc-900 tabular-nums">
             {currentCard.creditLimitCents !== undefined
               ? formatCents(currentCard.creditLimitCents, currentCard.currency)
               : "Not set"}
           </p>
         </Card>
         <Card>
-          <p className="text-sm font-medium text-zinc-500">Payment due day</p>
-          <p className="mt-2 text-2xl font-semibold text-zinc-900">
+          <p className="text-xs sm:text-sm font-medium text-zinc-500">Payment Due Day</p>
+          <p className="mt-1.5 text-lg sm:text-2xl font-semibold text-zinc-900">
             {currentCard.paymentDueDay ? `${currentCard.paymentDueDay}th of month` : "Not set"}
-          </p>
-        </Card>
-        <Card>
-          <p className="text-sm font-medium text-zinc-500">Authorized users</p>
-          <p className="mt-2 text-2xl font-semibold text-zinc-900">
-            {currentCard.userIds.length}
           </p>
         </Card>
       </div>
