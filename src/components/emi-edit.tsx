@@ -40,7 +40,7 @@ export default function EmiEdit() {
               : "EMI not found."
           }
         />
-        <Link href={`/cards/${cardId}`} className="text-sm font-medium text-zinc-700 underline">
+        <Link href={`/cards/${cardId}`} className="text-sm font-medium text-slate-300 underline transition-colors duration-200 hover:text-white cursor-pointer">
           Back to card
         </Link>
       </div>

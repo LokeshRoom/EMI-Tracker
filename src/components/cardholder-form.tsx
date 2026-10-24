@@ -78,12 +78,12 @@ export function CardholderSection({ cardId }: { cardId?: string }) {
       <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-base sm:text-lg font-bold tracking-tight text-zinc-950">Cardholders</h2>
-            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 border border-indigo-100">
+            <h2 className="text-base sm:text-lg font-bold tracking-tight text-slate-50">Cardholders</h2>
+            <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-xs font-semibold text-violet-300 border border-violet-400/25 backdrop-blur-md">
               Global List ({cardholders.data?.length ?? 0})
             </span>
           </div>
-          <p className="text-xs text-zinc-500 mt-0.5">
+          <p className="text-xs text-slate-400 mt-0.5">
             Cardholders are shared across all your cards for attributing and splitting EMIs.
           </p>
         </div>
@@ -91,17 +91,17 @@ export function CardholderSection({ cardId }: { cardId?: string }) {
 
       {/* Total Monthly Commitments Banner */}
       {dashboard.data && dashboard.data.monthlyCommitmentCents > 0 ? (
-        <div className="mb-4 rounded-xl bg-gradient-to-r from-indigo-50 to-indigo-100/60 border border-indigo-200/80 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="mb-4 rounded-xl bg-gradient-to-r from-violet-600/25 via-slate-950/40 to-slate-950/70 border border-white/15 p-3.5 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <p className="text-[11px] font-bold text-indigo-700 uppercase tracking-wider">
+            <p className="text-[11px] font-bold text-violet-300 uppercase tracking-wider">
               Total Monthly Split Commitments
             </p>
-            <p className="text-lg font-extrabold text-zinc-950 tabular-nums mt-0.5">
+            <p className="text-lg font-extrabold text-white tabular-nums mt-0.5">
               {formatCents(dashboard.data.monthlyCommitmentCents)}
-              <span className="text-xs font-normal text-zinc-500 ml-1">/ month across all active EMIs</span>
+              <span className="text-xs font-normal text-slate-400 ml-1">/ month across all active EMIs</span>
             </p>
           </div>
-          <span className="text-xs font-semibold text-indigo-700 self-start sm:self-auto bg-white/80 px-2.5 py-1 rounded-lg border border-indigo-200/60">
+          <span className="text-xs font-semibold text-violet-300 self-start sm:self-auto bg-white/8 px-2.5 py-1 rounded-lg border border-white/15 backdrop-blur-md">
             {activeEmis.length} active {activeEmis.length === 1 ? "EMI" : "EMIs"}
           </span>
         </div>
@@ -123,29 +123,29 @@ export function CardholderSection({ cardId }: { cardId?: string }) {
             return (
               <li
                 key={cardholder.id}
-                className="flex items-center justify-between rounded-xl border border-zinc-200/90 bg-zinc-50/50 p-3 transition-colors hover:bg-zinc-50"
+                className="flex items-center justify-between rounded-xl border border-white/15 bg-white/8 p-3 backdrop-blur-md transition-colors duration-200 hover:bg-white/10"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-xs font-bold text-indigo-700">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-500/15 text-xs font-bold text-violet-300 border border-violet-400/25">
                     {initial}
                   </div>
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-bold text-zinc-900">{cardholder.name}</p>
+                      <p className="text-sm font-bold text-slate-100">{cardholder.name}</p>
                       {activeStats && activeStats.totalCents > 0 ? (
-                        <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-100 tabular-nums">
+                        <span className="inline-flex items-center rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-300 border border-emerald-400/25 tabular-nums backdrop-blur-md">
                           {formatCents(activeStats.totalCents)} / mo
-                          <span className="text-[10px] font-normal text-emerald-600 ml-1">
+                          <span className="text-[10px] font-normal text-emerald-400 ml-1">
                             ({activeStats.count} {activeStats.count === 1 ? "EMI" : "EMIs"})
                           </span>
                         </span>
                       ) : (
-                        <span className="text-[11px] font-medium text-zinc-400">
+                        <span className="text-[11px] font-medium text-slate-500">
                           (No active EMIs)
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-zinc-500 mt-0.5">
+                    <p className="text-xs text-slate-400 mt-0.5">
                       {cardholder.email}
                       {cardholder.phone ? ` · ${cardholder.phone}` : ""}
                     </p>
@@ -153,7 +153,7 @@ export function CardholderSection({ cardId }: { cardId?: string }) {
                 </div>
                 <SecondaryButton
                   type="button"
-                  className="px-2.5 py-1 text-xs min-h-[30px] text-red-600 hover:text-red-700"
+                  className="px-2.5 py-1 text-xs min-h-[30px] text-red-400 hover:text-red-300 border-white/15 bg-red-500/10 hover:bg-red-500/15"
                   onClick={() => handleDelete(cardholder.id)}
                   disabled={deleteCardholder.isPending}
                 >
@@ -165,8 +165,8 @@ export function CardholderSection({ cardId }: { cardId?: string }) {
         </ul>
       )}
 
-      <form onSubmit={onSubmit} className="rounded-xl border border-zinc-200 bg-white p-3.5 sm:p-4 space-y-3">
-        <p className="text-xs font-bold text-zinc-700 uppercase tracking-wider">
+      <form onSubmit={onSubmit} className="rounded-xl border border-white/15 bg-slate-950/60 p-3.5 sm:p-4 backdrop-blur-md space-y-3">
+        <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">
           + Add New Cardholder
         </p>
         <div className="grid gap-3 sm:grid-cols-3">

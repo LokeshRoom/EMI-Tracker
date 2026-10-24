@@ -45,7 +45,14 @@ export const cardFormSchema = z.object({
   }, {
     message: "Enter a payment due day between 1 and 31.",
   }),
-  authorizedUserIds: z.string(),
+  authorizedUserIds: z
+    .string()
+    .refine((value) => {
+      const tokens = value.split(",").map((token) => token.trim()).filter(Boolean);
+      return tokens.every((token) => /^[A-Za-z0-9_-]{1,64}$/.test(token));
+    }, {
+      message: "Each authorized UID must be a valid Firebase UID (letters, digits, - or _).",
+    }),
 });
 
 export const cardholderFormSchema = z.object({

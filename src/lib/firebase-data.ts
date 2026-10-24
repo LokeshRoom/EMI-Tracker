@@ -13,8 +13,8 @@ import {
   writeBatch,
   type Timestamp,
 } from "firebase/firestore";
-import { getFirebase } from "@/lib/firebase";
-import type { Card, Cardholder, CardInput, Emi, EmiInput } from "@/types";
+import { getErrorMessage, getFirebase } from "@/lib/firebase";
+import type { AccessLogEntry, Card, Cardholder, CardInput, Emi, EmiInput } from "@/types";
 
 function requireFirestore() {
   const firebase = getFirebase();
@@ -32,6 +32,35 @@ function sortByTimestampDescending<T extends { updatedAt?: Timestamp | null; cre
   );
 }
 
+function currentUid() {
+  return getFirebase()?.auth.currentUser?.uid ?? undefined;
+}
+
+export function isCardMember(card: Card, uid?: string): boolean {
+  if (!uid) return false;
+  return card.userIds?.includes(uid) ?? false;
+}
+
+function requireMembership(card: Card, uid?: string): void {
+  if (!isCardMember(card, uid)) throw new Error("You don't have access to this card.");
+}
+
+function requireOwnership(card: Card, uid?: string): void {
+  if (card.ownerUid !== uid) throw new Error("Only the card owner can do this.");
+}
+
+export function computeAccessChanges(
+  previous: string[],
+  next: string[],
+  ownerUid: string
+): { added: string[]; removed: string[] } {
+  const prev = new Set(previous);
+  const nextSet = new Set(next);
+  const added = [...nextSet].filter((uid) => uid !== ownerUid && !prev.has(uid));
+  const removed = [...prev].filter((uid) => uid !== ownerUid && !nextSet.has(uid));
+  return { added, removed };
+}
+
 export async function getCardsForUser(uid: string): Promise<Card[]> {
   const db = requireFirestore();
   const q = query(collection(db, "cards"), where("userIds", "array-contains", uid));
@@ -44,7 +73,10 @@ export async function getCard(cardId: string): Promise<Card | null> {
   const db = requireFirestore();
   const snapshot = await getDoc(doc(db, "cards", cardId));
   if (!snapshot.exists()) return null;
-  return { id: snapshot.id, ...snapshot.data() } as Card;
+  const card = { id: snapshot.id, ...snapshot.data() } as Card;
+  // Defense in depth: Firestore rules already deny non-members server-side.
+  requireMembership(card, currentUid());
+  return card;
 }
 
 export async function createCard(ownerUid: string, input: CardInput): Promise<Card> {
@@ -72,7 +104,23 @@ export async function createCard(ownerUid: string, input: CardInput): Promise<Ca
     data.paymentDueDay = input.paymentDueDay;
   }
   const ref = doc(collection(db, "cards"));
-  await setDoc(ref, data);
+  // Write the card and its access-log entries in one batch so the audit
+  // trail is created atomically with the grant.
+  const batch = writeBatch(db);
+  batch.set(ref, data);
+  for (const grantedUid of input.authorizedUserIds) {
+    if (grantedUid === ownerUid) continue;
+    const entryRef = doc(collection(db, "cards", ref.id, "accessLog"));
+    batch.set(entryRef, {
+      action: "added",
+      grantedUid,
+      byUid: ownerUid,
+      userIds,
+      ownerUid,
+      at: now,
+    });
+  }
+  await batch.commit();
   return { id: ref.id, ...data } as Card;
 }
 
@@ -80,6 +128,8 @@ export async function updateCard(cardId: string, input: Partial<CardInput>): Pro
   const db = requireFirestore();
   const card = await getCard(cardId);
   if (!card) throw new Error("Card not found.");
+  // Defense in depth: Firestore rules already deny non-owners server-side.
+  requireOwnership(card, currentUid());
 
   const data: Record<string, unknown> = { updatedAt: serverTimestamp() };
 
@@ -95,12 +145,33 @@ export async function updateCard(cardId: string, input: Partial<CardInput>): Pro
   if (input.paymentDueDay !== undefined) {
     data.paymentDueDay = input.paymentDueDay;
   }
+  let logEntries: Array<{ action: "added" | "removed"; grantedUid: string }> = [];
   if (input.authorizedUserIds !== undefined) {
-    data.userIds = [...new Set([card.ownerUid, ...input.authorizedUserIds])];
+    const nextUserIds = [...new Set([card.ownerUid, ...input.authorizedUserIds])];
+    data.userIds = nextUserIds;
+    const changes = computeAccessChanges(card.userIds ?? [], nextUserIds, card.ownerUid);
+    logEntries = [
+      ...changes.added.map((uid) => ({ action: "added" as const, grantedUid: uid })),
+      ...changes.removed.map((uid) => ({ action: "removed" as const, grantedUid: uid })),
+    ];
   }
 
   const ref = doc(db, "cards", cardId);
-  await updateDoc(ref, data);
+  // Batch the card update with its access-log entries so the audit trail is
+  // written atomically with the membership change.
+  const batch = writeBatch(db);
+  batch.update(ref, data);
+  for (const entry of logEntries) {
+    batch.set(doc(collection(db, "cards", cardId, "accessLog")), {
+      action: entry.action,
+      grantedUid: entry.grantedUid,
+      byUid: currentUid() ?? "",
+      userIds: data.userIds as string[],
+      ownerUid: card.ownerUid,
+      at: serverTimestamp(),
+    });
+  }
+  await batch.commit();
   const updated = await getCard(cardId);
   if (!updated) throw new Error("Card not found.");
   return updated;
@@ -108,6 +179,11 @@ export async function updateCard(cardId: string, input: Partial<CardInput>): Pro
 
 export async function deleteCard(cardId: string): Promise<void> {
   const db = requireFirestore();
+  const card = await getCard(cardId);
+  if (!card) throw new Error("Card not found.");
+  // Defense in depth: Firestore rules already deny non-owners server-side.
+  requireOwnership(card, currentUid());
+
   const emiSnapshot = await getDocs(collection(db, "cards", cardId, "emis"));
   const cardholderSnapshot = await getDocs(collection(db, "cards", cardId, "cardholders"));
   const batch = writeBatch(db);
@@ -135,7 +211,7 @@ export async function getCardholders(cardId?: string, uid?: string): Promise<Car
         list.push({ id: item.id, ...item.data() } as Cardholder);
       });
     } catch (err) {
-      console.warn("Could not fetch global cardholders:", err);
+      console.warn(`Could not fetch global cardholders: ${getErrorMessage(err)}`);
     }
   }
 
@@ -151,7 +227,7 @@ export async function getCardholders(cardId?: string, uid?: string): Promise<Car
         }
       });
     } catch (err) {
-      console.warn("Could not fetch card cardholders:", err);
+      console.warn(`Could not fetch card cardholders: ${getErrorMessage(err)}`);
     }
   }
 
@@ -177,18 +253,22 @@ export async function createCardholder(
     data.phone = input.phone;
   }
 
-  // Always persist into global user cardholders list if authenticated
+  // Card-scoped cardholders are shared with the card's members and protected
+  // by the denormalized userIds field that Firestore rules check.
+  if (cardId && currentUid) {
+    const card = await getCard(cardId);
+    if (!card) throw new Error("Card not found.");
+    data.userIds = card.userIds ?? [];
+    const ref = doc(collection(db, "cards", cardId, "cardholders"));
+    await setDoc(ref, data);
+    return { id: ref.id, ...data } as Cardholder;
+  }
+
+  // Personal (per-user) cardholder list, private to the owner.
   if (currentUid) {
     const globalRef = doc(collection(db, "users", currentUid, "cardholders"));
     await setDoc(globalRef, data);
     return { id: globalRef.id, ...data } as Cardholder;
-  }
-
-  // Fallback to legacy card subcollection if only cardId is provided
-  if (cardId) {
-    const ref = doc(collection(db, "cards", cardId, "cardholders"));
-    await setDoc(ref, data);
-    return { id: ref.id, ...data } as Cardholder;
   }
 
   throw new Error("Authentication required to create a cardholder.");
@@ -233,7 +313,10 @@ export async function getEmi(cardId: string, emiId: string): Promise<Emi | null>
 export async function createEmi(cardId: string, input: EmiInput): Promise<Emi> {
   const db = requireFirestore();
   const now = serverTimestamp();
+  const card = await getCard(cardId);
+  if (!card) throw new Error("Card not found.");
   const ref = doc(collection(db, "cards", cardId, "emis"));
+  // Denormalize membership so Firestore rules can protect the subcollection.
   const data = {
     cardholderId: input.cardholderId,
     merchantName: input.merchantName,
@@ -249,6 +332,7 @@ export async function createEmi(cardId: string, input: EmiInput): Promise<Emi> {
     status: input.status,
     splits: input.splits ?? [],
     paidInstallmentsCount: input.paidInstallmentsCount ?? 0,
+    userIds: card.userIds ?? [],
     createdAt: now,
     updatedAt: now,
   };
@@ -258,6 +342,10 @@ export async function createEmi(cardId: string, input: EmiInput): Promise<Emi> {
 
 export async function updateEmi(cardId: string, emiId: string, input: Partial<EmiInput>): Promise<Emi> {
   const db = requireFirestore();
+  // Defense in depth: Firestore rules already deny non-members server-side.
+  const card = await getCard(cardId);
+  if (!card) throw new Error("Card not found.");
+
   const data: Record<string, unknown> = { updatedAt: serverTimestamp() };
 
   if (input.cardholderId !== undefined) data.cardholderId = input.cardholderId;
@@ -284,5 +372,20 @@ export async function updateEmi(cardId: string, emiId: string, input: Partial<Em
 
 export async function deleteEmi(cardId: string, emiId: string): Promise<void> {
   const db = requireFirestore();
+  // Defense in depth: Firestore rules already deny non-members server-side.
+  const card = await getCard(cardId);
+  if (!card) throw new Error("Card not found.");
   await deleteDoc(doc(db, "cards", cardId, "emis", emiId));
+}
+
+export async function getAccessLog(cardId: string): Promise<AccessLogEntry[]> {
+  const db = requireFirestore();
+  const q = query(collection(db, "cards", cardId, "accessLog"));
+  const snapshot = await getDocs(q);
+  // Sort by the entry's own `at` timestamp. The shared sortByTimestampDescending helper
+  // requires updatedAt/createdAt fields on T, which AccessLogEntry does not have.
+  const entries = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as AccessLogEntry);
+  return [...entries].sort(
+    (a, b) => timestampMillis(b.at ?? null) - timestampMillis(a.at ?? null)
+  );
 }

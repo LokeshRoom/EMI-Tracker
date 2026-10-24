@@ -56,26 +56,26 @@ export default function CardsPage() {
               : 0;
 
             return (
-              <Card key={card.id} className="flex flex-col justify-between gap-4 border-zinc-200/90 shadow-2xs hover:border-indigo-300 transition-all">
+              <Card key={card.id} className="flex flex-col justify-between gap-4 border-white/15 shadow-lg hover:border-amber-400/40 transition-all duration-200">
                 <div>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
                       {/* Metallic Card Chip Graphic */}
-                      <div className="flex h-8 w-10 shrink-0 flex-col justify-between rounded-md border border-amber-300/80 bg-linear-to-tr from-amber-200 via-amber-100 to-amber-200 p-1 shadow-2xs">
-                        <div className="h-1 w-full rounded-xs bg-amber-400/60" />
+                      <div className="flex h-8 w-10 shrink-0 flex-col justify-between rounded-md border border-amber-400/60 bg-gradient-to-tr from-amber-300/30 via-amber-200/20 to-amber-300/30 p-1 shadow-xs">
+                        <div className="h-1 w-full rounded-xs bg-amber-400/50" />
                         <div className="flex justify-between">
-                          <div className="h-2 w-2 rounded-xs border border-amber-400/60" />
-                          <div className="h-2 w-2 rounded-xs border border-amber-400/60" />
+                          <div className="h-2 w-2 rounded-xs border border-amber-400/50" />
+                          <div className="h-2 w-2 rounded-xs border border-amber-400/50" />
                         </div>
                       </div>
                       <div>
                         <Link
                           href={`/cards/${card.id}`}
-                          className="text-base font-bold text-zinc-950 hover:text-indigo-600 transition-colors"
+                          className="text-base font-bold text-slate-100 hover:text-amber-300 transition-colors duration-200 cursor-pointer"
                         >
                           {card.bankName}
                         </Link>
-                        <p className="text-xs text-zinc-500">
+                        <p className="text-xs text-slate-400">
                           {card.cardLabel} · •••• {card.last4}
                           {card.cardOwner ? ` · Owner: ${card.cardOwner}` : ""}
                         </p>
@@ -88,24 +88,24 @@ export default function CardsPage() {
                     </Link>
                   </div>
 
-                  <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 rounded-xl bg-zinc-50/80 p-3 text-xs sm:text-sm">
+                  <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 rounded-xl border border-white/10 bg-slate-950/60 p-3 text-xs sm:text-sm backdrop-blur-md">
                     <div>
-                      <p className="text-xs text-zinc-500">Outstanding</p>
-                      <p className="mt-0.5 font-bold text-zinc-950 tabular-nums">
+                      <p className="text-xs text-slate-400">Outstanding</p>
+                      <p className="mt-0.5 font-bold text-slate-100 tabular-nums">
                         {formatCents(card.outstandingBalanceCents, card.currency)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-zinc-500">Credit Limit</p>
-                      <p className="mt-0.5 font-semibold text-zinc-800 tabular-nums">
+                      <p className="text-xs text-slate-400">Credit Limit</p>
+                      <p className="mt-0.5 font-semibold text-slate-300 tabular-nums">
                         {card.creditLimitCents !== undefined
                           ? formatCents(card.creditLimitCents, card.currency)
                           : "Not set"}
                       </p>
                     </div>
                     <div className="col-span-2 sm:col-span-1">
-                      <p className="text-xs text-zinc-500">Payment Due</p>
-                      <p className="mt-0.5 font-semibold text-zinc-800">
+                      <p className="text-xs text-slate-400">Payment Due</p>
+                      <p className="mt-0.5 font-semibold text-slate-300">
                         {card.paymentDueDay ? `${card.paymentDueDay}th of month` : "Not set"}
                       </p>
                     </div>
@@ -114,18 +114,18 @@ export default function CardsPage() {
                   {/* Utilization Progress Bar */}
                   {hasLimit ? (
                     <div className="mt-3">
-                      <div className="flex items-center justify-between text-[11px] text-zinc-500 mb-1">
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
                         <span>Utilization</span>
                         <span>{usedPercent}% used</span>
                       </div>
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
                         <div
                           className={`h-full rounded-full transition-all duration-500 ${
                             usedPercent > 80
                               ? "bg-red-500"
                               : usedPercent > 50
-                              ? "bg-amber-500"
-                              : "bg-indigo-600"
+                              ? "bg-gradient-to-r from-amber-400 to-orange-500"
+                              : "bg-gradient-to-r from-violet-500 to-purple-600"
                           }`}
                           style={{ width: `${usedPercent}%` }}
                         />
@@ -134,14 +134,14 @@ export default function CardsPage() {
                   ) : null}
                 </div>
 
-                <div className="pt-2 border-t border-zinc-100 flex items-center justify-between">
+                <div className="pt-2 border-t border-white/10 flex items-center justify-between">
                   <Link
                     href={`/cards/${card.id}`}
-                    className="text-xs sm:text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
+                    className="text-xs sm:text-sm font-semibold text-amber-300 hover:text-amber-200 transition-colors duration-200 cursor-pointer"
                   >
                     View EMIs & Details →
                   </Link>
-                  <span className="text-[11px] text-zinc-400 uppercase tracking-wider font-mono">
+                  <span className="text-[11px] text-slate-500 uppercase tracking-wider font-mono">
                     {card.currency}
                   </span>
                 </div>

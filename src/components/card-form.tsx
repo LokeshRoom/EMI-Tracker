@@ -148,6 +148,10 @@ export function CardForm({
         Only card label and last 4 digits are stored. Full card number, CVV, PIN,
         and card verification code are not stored.
       </p>
+      <p className="text-xs text-zinc-500">
+        Adding a UID grants immediate shared access to this card; removing it cuts
+        that person off instantly. Every change is recorded in the access history.
+      </p>
       <div className="flex flex-wrap gap-2">
         <Button type="submit" disabled={isPending}>
           {isPending

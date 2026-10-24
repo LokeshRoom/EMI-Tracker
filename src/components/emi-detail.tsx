@@ -43,7 +43,7 @@ export default function EmiDetail() {
               : "EMI not found."
           }
         />
-        <Link href={`/cards/${cardId}`} className="text-sm font-medium text-zinc-700 underline">
+        <Link href={`/cards/${cardId}`} className="text-sm font-medium text-slate-300 underline transition-colors duration-200 hover:text-white cursor-pointer">
           Back to card
         </Link>
       </div>
@@ -85,7 +85,7 @@ export default function EmiDetail() {
       />
       <div className="flex items-center gap-2">
         <Badge>{currentEmi.status}</Badge>
-        <span className="text-sm text-zinc-500">
+        <span className="text-sm text-slate-400">
           Tenure: {currentEmi.tenureMonths} months · Starting {currentEmi.startMonth}
         </span>
       </div>

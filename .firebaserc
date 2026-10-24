@@ -1,5 +1,17 @@
 {
   "projects": {
     "default": "emi-tracker-ff64e"
+  },
+  "emulators": {
+    "auth": {
+      "project_id": "emi-tracker-local-test",
+      "port": 9099
+    },
+    "firestore": {
+      "host": "localhost",
+      "port": 8080,
+      "project_id": "emi-tracker-local-test",
+      "rules": "firestore.rules"
+    }
   }
 }

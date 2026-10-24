@@ -26,7 +26,7 @@ export default function CardEdit() {
         <ErrorNotice
           message={card.error ? getErrorMessage(card.error) : "Card not found."}
         />
-        <Link href="/cards" className="text-sm font-medium text-zinc-700 underline">
+        <Link href="/cards" className="text-sm font-medium text-slate-300 underline transition-colors duration-200 hover:text-white cursor-pointer">
           Back to cards
         </Link>
       </div>

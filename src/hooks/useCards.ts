@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { createCard, deleteCard, getCard, getCardsForUser, updateCard } from "@/lib/firebase-data";
+import { createCard, deleteCard, getAccessLog, getCard, getCardsForUser, updateCard } from "@/lib/firebase-data";
 import type { CardInput } from "@/types";
 
 function useUid() {
@@ -24,6 +24,14 @@ export function useCard(cardId?: string) {
     queryKey: ["card", cardId],
     enabled: Boolean(cardId),
     queryFn: () => getCard(cardId as string),
+  });
+}
+
+export function useAccessLog(cardId?: string) {
+  return useQuery({
+    queryKey: ["access-log", cardId],
+    enabled: Boolean(cardId),
+    queryFn: () => getAccessLog(cardId as string),
   });
 }
 

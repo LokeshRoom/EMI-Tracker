@@ -118,7 +118,7 @@ export function NotificationBell() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative rounded-full p-2 text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:outline-none"
+        className="relative rounded-full p-2 text-slate-400 transition-colors duration-200 hover:bg-white/10 hover:text-white focus:outline-none cursor-pointer"
         aria-label="Notifications"
       >
         {/* Bell Icon */}
@@ -138,47 +138,47 @@ export function NotificationBell() {
         </svg>
 
         {dueItems.length > 0 ? (
-          <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white ring-2 ring-white">
+          <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-slate-950">
             {dueItems.length}
           </span>
         ) : null}
       </button>
 
       {isOpen ? (
-        <div className="absolute right-0 z-50 mt-2 w-[calc(100vw-1.5rem)] max-w-sm sm:w-96 rounded-lg border border-zinc-200 bg-white p-3 shadow-lg ring-1 ring-black/5">
-          <div className="flex items-center justify-between border-b border-zinc-100 pb-2">
-            <span className="font-semibold text-zinc-900 text-sm">Payment Due Reminders</span>
+        <div className="absolute right-0 z-50 mt-2 w-[calc(100vw-1.5rem)] max-w-sm rounded-xl border border-white/15 bg-slate-900/95 p-3 shadow-2xl backdrop-blur-xl">
+          <div className="flex items-center justify-between border-b border-white/10 pb-2">
+            <span className="font-semibold text-slate-100 text-sm">Payment Due Reminders</span>
             {dueItems.length > 0 ? (
-              <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
+              <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-xs font-medium text-red-400 border border-red-400/25">
                 {dueItems.length} Due Soon
               </span>
             ) : null}
           </div>
 
           {/* Browser Permission Control */}
-          <div className="my-2 rounded-md bg-zinc-50 p-2 text-xs">
+          <div className="my-2 rounded-md bg-slate-950/60 p-2 text-xs border border-white/10 backdrop-blur-md">
             {permission === "granted" ? (
               <div className="flex items-center justify-between">
-                <span className="text-emerald-700 font-medium">✓ Browser notifications active</span>
+                <span className="text-emerald-400 font-medium">✓ Browser notifications active</span>
                 <button
                   type="button"
                   onClick={sendTestNotification}
-                  className="text-zinc-600 underline hover:text-zinc-900"
+                  className="text-slate-300 underline transition-colors duration-200 hover:text-white cursor-pointer"
                 >
                   Test alert
                 </button>
               </div>
             ) : permission === "denied" ? (
-              <span className="text-zinc-500">
+              <span className="text-slate-400">
                 Notifications blocked in your browser settings.
               </span>
             ) : (
               <div className="flex items-center justify-between gap-2">
-                <span className="text-zinc-600">Get browser reminders for due dates</span>
+                <span className="text-slate-300">Get browser reminders for due dates</span>
                 <button
                   type="button"
                   onClick={requestNotificationPermission}
-                  className="rounded bg-zinc-900 px-2 py-1 font-medium text-white hover:bg-zinc-800"
+                  className="rounded bg-violet-600 px-2 py-1 font-medium text-white transition-colors duration-200 hover:bg-violet-500 cursor-pointer"
                 >
                   Enable
                 </button>
@@ -189,7 +189,7 @@ export function NotificationBell() {
           {/* Dues List */}
           <div className="mt-2 max-h-64 space-y-2 overflow-y-auto">
             {dueItems.length === 0 ? (
-              <p className="py-4 text-center text-xs text-zinc-500">
+              <p className="py-4 text-center text-xs text-slate-400">
                 No cards due in the next 3 days.
               </p>
             ) : (
@@ -198,28 +198,28 @@ export function NotificationBell() {
                   key={card.id}
                   href={`/cards/${card.id}`}
                   onClick={() => setIsOpen(false)}
-                  className="block rounded-md border border-zinc-100 p-2.5 transition-colors hover:bg-zinc-50"
+                  className="block rounded-md border border-white/10 p-2.5 transition-colors duration-200 hover:bg-white/5 cursor-pointer"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="text-xs font-semibold text-zinc-900">
+                      <p className="text-xs font-semibold text-slate-100">
                         {card.bankName} · {card.cardLabel}
                       </p>
-                      <p className="text-[11px] text-zinc-500">
+                      <p className="text-[11px] text-slate-400">
                         Ends {card.last4} · Due Day: {card.paymentDueDay}th
                       </p>
                     </div>
                     <span
                       className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
                         isUrgent
-                          ? "bg-red-100 text-red-700"
-                          : "bg-amber-100 text-amber-800"
+                          ? "bg-red-500/10 text-red-400 border border-red-400/25"
+                          : "bg-amber-500/10 text-amber-300 border border-amber-400/25"
                       }`}
                     >
                       {statusLabel}
                     </span>
                   </div>
-                  <p className="mt-1 text-xs font-medium text-zinc-700">
+                  <p className="mt-1 text-xs font-medium text-slate-300 tabular-nums">
                     Outstanding: {formatCents(card.outstandingBalanceCents, card.currency)}
                   </p>
                 </Link>

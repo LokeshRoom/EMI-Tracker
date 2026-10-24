@@ -38,6 +38,7 @@ export interface Cardholder {
   phone?: string;
   email: string;
   ownerUid?: string;
+  userIds?: string[];
   createdAt?: Timestamp | null;
   updatedAt?: Timestamp | null;
 }
@@ -46,6 +47,7 @@ export interface Emi {
   id: string;
   cardId: string;
   cardholderId: string;
+  userIds?: string[];
   splits?: EmiSplit[];
   paidInstallmentsCount?: number;
   merchantName: string;
@@ -61,6 +63,16 @@ export interface Emi {
   status: EmiStatus;
   createdAt?: Timestamp | null;
   updatedAt?: Timestamp | null;
+}
+
+export interface AccessLogEntry {
+  id: string;
+  action: "added" | "removed";
+  grantedUid: string;
+  byUid: string;
+  userIds?: string[];
+  ownerUid?: string;
+  at?: Timestamp | null;
 }
 
 export interface CardInput {

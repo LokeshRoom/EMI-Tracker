@@ -271,9 +271,9 @@ export function EmiForm({
       </div>
 
       {/* Already Running EMI Section */}
-      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
-        <h3 className="text-sm font-semibold text-zinc-900">Already Running / Existing EMI</h3>
-        <p className="mt-1 text-xs text-zinc-500">
+      <div className="rounded-xl border border-white/15 bg-slate-950/60 p-4 backdrop-blur-md">
+        <h3 className="text-sm font-semibold text-slate-100">Already Running / Existing EMI</h3>
+        <p className="mt-1 text-xs text-slate-400">
           If this EMI has already been active for some months, specify how many monthly installments have already been paid.
         </p>
         <div className="mt-3 max-w-xs">
@@ -288,20 +288,20 @@ export function EmiForm({
       </div>
 
       {/* EMI Splitting Section */}
-      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+      <div className="rounded-xl border border-white/15 bg-slate-950/60 p-4 backdrop-blur-md">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-zinc-900">Split EMI Between Cardholders</h3>
-            <p className="mt-1 text-xs text-zinc-500">
+            <h3 className="text-sm font-semibold text-slate-100">Split EMI Between Cardholders</h3>
+            <p className="mt-1 text-xs text-slate-400">
               Divide monthly payments and total outlay across multiple cardholders.
             </p>
           </div>
-          <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-zinc-700">
+          <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-300">
             <input
               type="checkbox"
               checked={isSplit}
               onChange={(e) => setIsSplit(e.target.checked)}
-              className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
+              className="h-4 w-4 rounded border-white/20 bg-slate-950 text-violet-400 focus:ring-amber-400/30"
             />
             Enable Split
           </label>
@@ -309,16 +309,16 @@ export function EmiForm({
 
         {isSplit ? (
           <div className="mt-4 space-y-3">
-            <div className="flex items-center justify-between text-xs text-zinc-500">
+            <div className="flex items-center justify-between text-xs text-slate-400">
               <span>Cardholder & Share %</span>
               <div className="flex items-center gap-3">
-                <span className={Math.abs(totalSplitPercent - 100) < 0.05 ? "font-semibold text-emerald-600" : "font-semibold text-amber-600"}>
+                <span className={Math.abs(totalSplitPercent - 100) < 0.05 ? "font-semibold text-emerald-400" : "font-semibold text-amber-400"}>
                   Total: {totalSplitPercent.toFixed(1)}%
                 </span>
                 <button
                   type="button"
                   onClick={handleSplitEqually}
-                  className="rounded border border-zinc-300 bg-white px-2 py-0.5 text-xs text-zinc-700 hover:bg-zinc-100"
+                  className="rounded border border-white/20 bg-slate-950 px-2 py-0.5 text-xs text-slate-300 transition-colors duration-200 hover:bg-white/10 cursor-pointer"
                 >
                   Split Equally
                 </button>
@@ -330,7 +330,7 @@ export function EmiForm({
                 <select
                   value={split.cardholderId}
                   onChange={(e) => handleUpdateSplit(index, { cardholderId: e.target.value })}
-                  className="flex-1 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm"
+                  className="flex-1 rounded-md border border-white/20 bg-slate-950 px-3 py-1.5 text-sm text-slate-100 focus:border-amber-400/70"
                 >
                   {cardholders.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -346,15 +346,15 @@ export function EmiForm({
                     max="100"
                     value={split.percentage}
                     onChange={(e) => handleUpdateSplit(index, { percentage: Number(e.target.value) })}
-                    className="w-20 rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm text-right"
+                    className="w-20 rounded-md border border-white/20 bg-slate-950 px-2 py-1.5 text-sm text-right text-slate-100 focus:border-amber-400/70"
                   />
-                  <span className="text-sm text-zinc-500">%</span>
+                  <span className="text-sm text-slate-400">%</span>
                 </div>
                 {splits.length > 1 ? (
                   <button
                     type="button"
                     onClick={() => handleRemoveSplit(index)}
-                    className="text-xs text-red-600 hover:underline"
+                    className="text-xs text-red-400 hover:text-red-300 transition-colors duration-200 cursor-pointer"
                   >
                     Remove
                   </button>
@@ -366,7 +366,7 @@ export function EmiForm({
               <button
                 type="button"
                 onClick={handleAddSplit}
-                className="text-xs font-medium text-zinc-700 hover:underline"
+                className="text-xs font-medium text-slate-300 hover:text-white transition-colors duration-200 cursor-pointer"
               >
                 + Add another cardholder to split
               </button>
@@ -377,10 +377,10 @@ export function EmiForm({
 
       {/* Dynamic Live Calculation Preview */}
       {previewCalculation ? (
-        <Card className="border-indigo-100 bg-indigo-50/30">
+        <Card className="border-violet-400/25 bg-violet-500/10">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-zinc-900">Live Calculation Preview</h3>
-            <Badge>Dynamic Preview</Badge>
+            <h3 className="text-sm font-semibold text-slate-100">Live Calculation Preview</h3>
+            <Badge variant="purple">Dynamic Preview</Badge>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
@@ -403,33 +403,33 @@ export function EmiForm({
           </div>
 
           {previewCalculation.paidInstallmentsCount > 0 ? (
-            <div className="mt-3 rounded-md bg-white p-3 text-xs text-zinc-600 border border-zinc-200">
-              <span className="font-semibold text-emerald-700">Running EMI Status: </span>
+            <div className="mt-3 rounded-md bg-slate-950/60 p-3 text-xs text-slate-400 border border-white/15 backdrop-blur-md">
+              <span className="font-semibold text-emerald-400">Running EMI Status: </span>
               {previewCalculation.paidInstallmentsCount} of {watchedValues.tenureMonths} installments already paid.
-              Remaining Principal: <span className="font-medium text-zinc-900">{formatCents(previewCalculation.remainingPrincipalBalanceCents)}</span> |
-              Remaining Outlay: <span className="font-medium text-zinc-900">{formatCents(previewCalculation.remainingOutlayCents)}</span>
+              Remaining Principal: <span className="font-medium text-slate-100 tabular-nums">{formatCents(previewCalculation.remainingPrincipalBalanceCents)}</span> |
+              Remaining Outlay: <span className="font-medium text-slate-100 tabular-nums">{formatCents(previewCalculation.remainingOutlayCents)}</span>
             </div>
           ) : null}
 
           {isSplit && previewCalculation.splits.length > 0 ? (
-            <div className="mt-4 rounded-md bg-white p-3 border border-zinc-200">
-              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+            <div className="mt-4 rounded-md bg-slate-950/60 p-3 border border-white/15 backdrop-blur-md">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Cardholder Split Breakdown
               </p>
-              <div className="mt-2 divide-y divide-zinc-100 text-xs">
+              <div className="mt-2 divide-y divide-white/10 text-xs">
                 {previewCalculation.splits.map((s) => {
                   const ch = cardholders.find((c) => c.id === s.cardholderId);
                   return (
                     <div key={s.cardholderId} className="flex items-center justify-between py-1.5">
-                      <span className="font-medium text-zinc-800">
+                      <span className="font-medium text-slate-200">
                         {ch?.name ?? "Cardholder"} ({s.percentage}%)
                       </span>
                       <div className="flex gap-4">
-                        <span className="text-zinc-600">
-                          Monthly: <strong className="text-zinc-900">{formatCents(s.monthlyEmiCents)}</strong>
+                        <span className="text-slate-400">
+                          Monthly: <strong className="text-slate-100 tabular-nums">{formatCents(s.monthlyEmiCents)}</strong>
                         </span>
-                        <span className="text-zinc-600">
-                          Total Outlay: <strong className="text-zinc-900">{formatCents(s.totalOutlayCents)}</strong>
+                        <span className="text-slate-400">
+                          Total Outlay: <strong className="text-slate-100 tabular-nums">{formatCents(s.totalOutlayCents)}</strong>
                         </span>
                       </div>
                     </div>

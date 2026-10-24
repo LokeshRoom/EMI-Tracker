@@ -69,30 +69,30 @@ export function PwaInstall() {
   }
 
   return (
-    <div className="fixed bottom-16 sm:bottom-4 left-4 right-4 sm:left-auto sm:right-4 z-50 max-w-sm rounded-xl border border-zinc-200 bg-white p-3.5 shadow-xl ring-1 ring-black/5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div className="fixed bottom-16 sm:bottom-4 left-4 right-4 sm:left-auto sm:right-4 z-50 max-w-sm rounded-xl border border-white/15 bg-slate-900/95 p-3.5 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-900 text-white font-bold shadow-sm">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 text-slate-900 font-bold shadow-sm">
           ₹
         </div>
         <div className="flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600">
+          <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
             Install EMI Tracker
           </p>
-          <p className="mt-0.5 text-xs text-zinc-600">
+          <p className="mt-0.5 text-xs text-slate-400">
             Add to your home screen for instant offline access and notifications.
           </p>
           <div className="mt-2.5 flex items-center gap-2">
             <button
               type="button"
               onClick={handleInstall}
-              className="rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition hover:bg-zinc-700 active:bg-zinc-800"
+              className="rounded-md bg-gradient-to-br from-violet-600 to-purple-700 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-all duration-200 hover:from-violet-500 hover:to-purple-600 active:scale-[0.98] cursor-pointer"
             >
               Install App
             </button>
             <button
               type="button"
               onClick={() => setIsDismissed(true)}
-              className="rounded-md border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-50"
+              className="rounded-md border border-white/15 bg-slate-950 px-2.5 py-1.5 text-xs font-medium text-slate-300 transition-colors duration-200 hover:bg-white/10 cursor-pointer"
             >
               Not now
             </button>

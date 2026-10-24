@@ -90,7 +90,7 @@ export function GoogleSignInButton({ disabled = false }: { disabled?: boolean })
         type="button"
         onClick={handleGoogleSignIn}
         disabled={disabled || loading}
-        className="flex w-full items-center justify-center gap-3 rounded-md border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-50 active:bg-zinc-100 disabled:pointer-events-none disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/15 bg-white/8 px-4 py-2.5 text-sm font-medium text-slate-200 backdrop-blur-md shadow-xs transition-all duration-200 hover:border-amber-400/50 hover:bg-white/12 hover:text-white active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 cursor-pointer"
       >
         <GoogleIcon className="h-5 w-5 shrink-0" />
         <span>{loading ? "Signing in with Google..." : "Continue with Google"}</span>
@@ -101,13 +101,10 @@ export function GoogleSignInButton({ disabled = false }: { disabled?: boolean })
 
 function AuthDivider() {
   return (
-    <div className="relative my-4">
-      <div className="absolute inset-0 flex items-center">
-        <div className="w-full border-t border-zinc-200" />
-      </div>
-      <div className="relative flex justify-center text-xs uppercase">
-        <span className="bg-white px-2 text-zinc-500">Or continue with email</span>
-      </div>
+    <div className="relative my-4 flex items-center gap-3 text-xs uppercase tracking-wide text-slate-400">
+      <div className="h-px flex-1 bg-white/15" />
+      <span>Or continue with email</span>
+      <div className="h-px flex-1 bg-white/15" />
     </div>
   );
 }

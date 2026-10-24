@@ -1,21 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/providers";
 import { PwaInstall } from "@/components/pwa-install";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const plexSans = IBM_Plex_Sans({
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-plex-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plexMono = IBM_Plex_Mono({
+  weight: ["400", "500", "600"],
+  variable: "--font-plex-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const viewport: Viewport = {
-  themeColor: "#18181b",
+  themeColor: "#0F172A",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -30,7 +34,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "EMI Tracker",
   },
   icons: {
@@ -43,9 +47,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${plexSans.variable} ${plexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-zinc-50 text-zinc-900">
+      <body className="min-h-full flex flex-col bg-slate-950 text-slate-50">
         <Providers>
           {children}
           <PwaInstall />

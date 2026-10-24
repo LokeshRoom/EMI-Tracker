@@ -94,8 +94,11 @@ cards/{cardId}/emis/{emiId}          cardholderId, merchantName, purchaseDate, p
 ## Security
 
 - Only card label and last 4 digits are stored — no full card number, CVV, PIN, or verification code.
-- Firestore rules restrict cards (and their subcollections) to users whose UID is in `card.userIds`.
-- Users can only read/write their own profile.
+- Firestore rules enforce access control server-side (the app adds defense-in-depth checks on top):
+  - Cards: readable by members (`card.userIds`); only the owner can create, update, or delete a card.
+  - Card subcollections (cardholders, EMIs): each document carries a denormalized `userIds` field; members of the card can read and write them.
+  - User profiles and per-user cardholder lists: private to their owner.
+- Shared access is granted by entering valid Firebase UIDs on the card form; malformed or unknown UIDs are rejected at input time.
 
 ## Deployment
 
@@ -107,3 +110,28 @@ firebase deploy
 ```
 
 `firebase.json` configures the hosting site (`myemitracker`) with clean URLs and a rewrite to `/index.html`. Firestore rules are deployed from `firestore.rules`.
+
+### One-time security migration (before tightening rules in production)
+
+Existing cardholders/EMIs created before this change lack the denormalized `userIds` field, so members would lose access once the tightened rules deploy. Backfill them **before** deploying the tightened rules.
+
+**Live project — use the admin script (no user credentials needed).** It runs with a Firebase service account and backfills all cards in one pass:
+
+1. Create a dedicated service account (Firebase Console → Project settings → Service accounts). Grant it only the **Editor** role on this project's Firestore database.
+2. Download the JSON key, save it as `service-account.json` in the repo root (git-ignored), and set `FIREBASE_SERVICE_ACCOUNT_KEY_FILE=service-account.json`.
+3. Dry-run first to preview the impact:
+
+```bash
+FIREBASE_BACKFILL_DRY_RUN=1 FIREBASE_SERVICE_ACCOUNT_KEY_FILE=service-account.json \
+  node scripts/backfill-card-membership-admin.mjs
+```
+
+4. Run for real (same env vars, without `FIREBASE_BACKFILL_DRY_RUN`), then run `firebase deploy`.
+
+**Local/emulator — use the user-credential script.** It signs in as a card owner and backfills only that owner's cards:
+
+```bash
+EMI_BACKFILL_EMAIL=you@example.com EMI_BACKFILL_PASSWORD=... node scripts/backfill-card-membership.mjs
+```
+
+Then run `firebase deploy` to publish the new rules.

@@ -47,26 +47,26 @@ export function EmiSummary({
     <div className="space-y-6">
       {/* Running EMI Alert Banner */}
       {calculation.paidInstallmentsCount > 0 ? (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-4">
+        <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-4 backdrop-blur-md shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-emerald-900">
+              <p className="text-sm font-semibold text-emerald-300">
                 Running EMI · {calculation.paidInstallmentsCount} of {emi.tenureMonths} installments completed
               </p>
-              <p className="mt-1 text-xs text-emerald-700">
+              <p className="mt-1 text-xs text-emerald-400">
                 Remaining installments: {calculation.remainingInstallmentsCount} months
               </p>
             </div>
             <div className="flex gap-4 text-sm">
               <div>
-                <span className="block text-xs text-emerald-700">Remaining Principal</span>
-                <span className="font-semibold text-emerald-900">
+                <span className="block text-xs text-emerald-400">Remaining Principal</span>
+                <span className="font-semibold text-emerald-300 tabular-nums">
                   {formatCents(calculation.remainingPrincipalBalanceCents, currency)}
                 </span>
               </div>
               <div>
-                <span className="block text-xs text-emerald-700">Remaining Outlay</span>
-                <span className="font-semibold text-emerald-900">
+                <span className="block text-xs text-emerald-400">Remaining Outlay</span>
+                <span className="font-semibold text-emerald-300 tabular-nums">
                   {formatCents(calculation.remainingOutlayCents, currency)}
                 </span>
               </div>
@@ -121,13 +121,13 @@ export function EmiSummary({
       {calculation.splits.length > 0 ? (
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-zinc-900">Cardholder Split Breakdown</h2>
-            <Badge>Split EMI</Badge>
+            <h2 className="text-lg font-semibold text-slate-100">Cardholder Split Breakdown</h2>
+            <Badge variant="purple">Split EMI</Badge>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-zinc-200 text-xs uppercase tracking-wide text-zinc-500">
+                <tr className="border-b border-white/10 text-xs uppercase tracking-wide text-slate-400">
                   <th className="px-3 py-2">Cardholder</th>
                   <th className="px-3 py-2">Share %</th>
                   <th className="px-3 py-2">1st Month Payable</th>
@@ -141,14 +141,14 @@ export function EmiSummary({
                 {calculation.splits.map((s) => {
                   const ch = cardholders.find((c) => c.id === s.cardholderId);
                   return (
-                    <tr key={s.cardholderId} className="border-b border-zinc-100 last:border-0">
-                      <td className="px-3 py-2 font-medium text-zinc-900">{ch?.name ?? "Cardholder"}</td>
-                      <td className="px-3 py-2 text-zinc-700">{s.percentage}%</td>
-                      <td className="px-3 py-2 font-bold text-indigo-700">{formatCents(s.firstMonthPaymentCents, currency)}</td>
-                      <td className="px-3 py-2 font-medium text-zinc-900">{formatCents(s.monthlyEmiCents, currency)}</td>
-                      <td className="px-3 py-2 text-zinc-700">{formatCents(s.upfrontFeeCents, currency)}</td>
-                      <td className="px-3 py-2 text-zinc-700">{formatCents(s.totalInterestCents, currency)}</td>
-                      <td className="px-3 py-2 font-medium text-zinc-900">{formatCents(s.totalOutlayCents, currency)}</td>
+                    <tr key={s.cardholderId} className="border-b border-white/10 last:border-0">
+                      <td className="px-3 py-2 font-medium text-slate-100">{ch?.name ?? "Cardholder"}</td>
+                      <td className="px-3 py-2 text-slate-300">{s.percentage}%</td>
+                      <td className="px-3 py-2 font-bold text-violet-300 tabular-nums">{formatCents(s.firstMonthPaymentCents, currency)}</td>
+                      <td className="px-3 py-2 font-medium text-slate-100 tabular-nums">{formatCents(s.monthlyEmiCents, currency)}</td>
+                      <td className="px-3 py-2 text-slate-300 tabular-nums">{formatCents(s.upfrontFeeCents, currency)}</td>
+                      <td className="px-3 py-2 text-slate-300 tabular-nums">{formatCents(s.totalInterestCents, currency)}</td>
+                      <td className="px-3 py-2 font-medium text-slate-100 tabular-nums">{formatCents(s.totalOutlayCents, currency)}</td>
                     </tr>
                   );
                 })}
@@ -160,9 +160,9 @@ export function EmiSummary({
 
       <Card>
         <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-          <h2 className="text-lg font-semibold text-zinc-900">Monthly schedule</h2>
+          <h2 className="text-lg font-semibold text-slate-100">Monthly schedule</h2>
           {calculation.schedule.length > 0 ? (
-            <span className="text-[11px] text-zinc-400 sm:hidden">Swipe horizontally to view full schedule →</span>
+            <span className="text-[11px] text-slate-500 sm:hidden">Swipe horizontally to view full schedule →</span>
           ) : null}
         </div>
         {calculation.schedule.length === 0 ? (
@@ -171,7 +171,7 @@ export function EmiSummary({
           <div className="overflow-x-auto touch-pan-x">
             <table className="w-full min-w-[820px] text-left text-sm">
               <thead>
-                <tr className="border-b border-zinc-200 text-xs uppercase tracking-wide text-zinc-500">
+                <tr className="border-b border-white/10 text-xs uppercase tracking-wide text-slate-400">
                   <th className="px-3 py-2">Month</th>
                   <th className="px-3 py-2">Date</th>
                   <th className="px-3 py-2">Status</th>
@@ -188,36 +188,36 @@ export function EmiSummary({
                 {calculation.schedule.map((item) => (
                   <tr
                     key={item.month}
-                    className={`border-b border-zinc-100 last:border-0 ${
-                      item.isPaid ? "bg-emerald-50/30 text-zinc-600" : ""
+                    className={`border-b border-white/10 last:border-0 ${
+                      item.isPaid ? "bg-emerald-500/10" : ""
                     }`}
                   >
-                    <td className="px-3 py-2 font-medium text-zinc-900">{item.month}</td>
-                    <td className="px-3 py-2 text-zinc-700">{item.startMonthLabel}</td>
+                    <td className="px-3 py-2 font-medium text-slate-100">{item.month}</td>
+                    <td className="px-3 py-2 text-slate-300">{item.startMonthLabel}</td>
                     <td className="px-3 py-2">
                       {item.isPaid ? (
-                        <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                        <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-300 border border-emerald-400/25">
                           Paid
                         </span>
                       ) : (
-                        <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700">
+                        <span className="inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-xs font-medium text-slate-300 border border-white/15">
                           Upcoming
                         </span>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-zinc-700">{formatCents(item.openingBalanceCents, currency)}</td>
-                    <td className="px-3 py-2 text-zinc-700">{formatCents(item.principalCents, currency)}</td>
-                    <td className="px-3 py-2 text-zinc-700">{formatCents(item.interestCents, currency)}</td>
-                    <td className="px-3 py-2 text-zinc-700">{formatCents(item.gstOnInterestCents, currency)}</td>
-                    <td className="px-3 py-2 text-zinc-700">
+                    <td className="px-3 py-2 text-slate-300 tabular-nums">{formatCents(item.openingBalanceCents, currency)}</td>
+                    <td className="px-3 py-2 text-slate-300 tabular-nums">{formatCents(item.principalCents, currency)}</td>
+                    <td className="px-3 py-2 text-slate-300 tabular-nums">{formatCents(item.interestCents, currency)}</td>
+                    <td className="px-3 py-2 text-slate-300 tabular-nums">{formatCents(item.gstOnInterestCents, currency)}</td>
+                    <td className="px-3 py-2 text-slate-300 tabular-nums">
                       {item.upfrontFeeCents > 0 ? (
-                        <span className="font-semibold text-amber-700">{formatCents(item.upfrontFeeCents, currency)}</span>
+                        <span className="font-semibold text-amber-300">{formatCents(item.upfrontFeeCents, currency)}</span>
                       ) : (
-                        <span className="text-zinc-400">—</span>
+                        <span className="text-slate-500">—</span>
                       )}
                     </td>
-                    <td className="px-3 py-2 font-bold text-zinc-900">{formatCents(item.totalMonthlyPaymentCents, currency)}</td>
-                    <td className="px-3 py-2 text-zinc-700">{formatCents(item.closingBalanceCents, currency)}</td>
+                    <td className="px-3 py-2 font-bold text-slate-100 tabular-nums">{formatCents(item.totalMonthlyPaymentCents, currency)}</td>
+                    <td className="px-3 py-2 text-slate-300 tabular-nums">{formatCents(item.closingBalanceCents, currency)}</td>
                   </tr>
                 ))}
               </tbody>

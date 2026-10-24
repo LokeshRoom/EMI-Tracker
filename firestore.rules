@@ -1,16 +1,17 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // User profile documents are private to their owner.
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
 
+      // Per-user cardholder lists are private to their owner.
       match /cardholders/{cardholderId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
-    match /cardholders/{cardholderId} {
-      allow read, write: if request.auth != null;
-    }
+
+    // Cards are readable by members (userIds) and only writable/deletable by the owner.
     match /cards/{cardId} {
       function isMember() {
         return request.auth != null && resource.data.userIds.hasAny([request.auth.uid]);
@@ -18,15 +19,25 @@ service cloud.firestore {
       function isOwner() {
         return request.auth != null && resource.data.ownerUid == request.auth.uid;
       }
+
       allow read: if isMember();
       allow create: if request.auth != null && request.resource.data.ownerUid == request.auth.uid;
       allow update, delete: if isOwner();
 
+      // Subcollections are protected by the denormalized userIds field on each document.
       match /cardholders/{cardholderId} {
-        allow read, write: if request.auth != null;
+        allow read, write: if request.auth != null && resource.data.userIds.hasAny([request.auth.uid]);
       }
+
       match /emis/{emiId} {
-        allow read, write: if request.auth != null;
+        allow read, write: if request.auth != null && resource.data.userIds.hasAny([request.auth.uid]);
+      }
+
+      // Append-only audit log of shared-access changes. Entries are created only
+      // by the card owner and carry denormalized membership for rule checks.
+      match /accessLog/{entryId} {
+        allow read: if request.auth != null && resource.data.userIds.hasAny([request.auth.uid]);
+        allow create: if request.auth != null && resource.data.ownerUid == request.auth.uid;
       }
     }
   }

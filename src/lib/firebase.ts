@@ -37,6 +37,15 @@ export function getFirebase() {
 }
 
 export function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
+  if (error instanceof Error) {
+    const code = (error as { code?: string }).code;
+    // Map well-known Firebase errors to friendly, non-leaky messages.
+    if (code === "permission-denied") return "You don't have access to this data.";
+    if (code === "unauthenticated") return "Please sign in again.";
+    if (code === "invalid-api-key" || code === "missing-api-key") {
+      return "Firebase is not configured. Check your environment variables.";
+    }
+    return error.message || "Something went wrong. Please try again.";
+  }
   return "Something went wrong. Please try again.";
 }
